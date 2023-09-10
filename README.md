@@ -36,7 +36,7 @@
 [09/09/2023-08:43:20] [TRT-LLM] [I]   rouge2 : 4.051266423605789<br>
 [09/09/2023-08:43:20] [TRT-LLM] [I]   rougeL : 12.611812188418664<br>
 [09/09/2023-08:43:20] [TRT-LLM] [I]   rougeLsum : 14.014294213871786<br>
-    -  运行说明：<br>
+  - 运行说明：<br>
         这个子任务主要是利用trtllm按照和任务１相同操作获取GPT2 weights对应的加速引擎，对摘要提取任务进行推理，并且获取对应的rouge分数;<br>
         主要困难点在于summarize.py加载ccdv/cnn_dailymail数据集以及加载rouge评估，均需要从huggingface下载，所提供服务器均下载失败，<br>
         <br>
