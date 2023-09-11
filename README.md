@@ -1,8 +1,37 @@
 ### 总述
 本工作是 [NVIDIA TensorRT Hackathon 2023](https://github.com/NVIDIA/trt-samples-for-hackathon-cn/tree/master/Hackathon2023) 的参赛题目
 - 本次具体选题是：2   
-- 选择新模型为：Qwen-7B-Chat　
+- 新模型：Qwen-7B-Chat　
+- 模型链接：https://github.com/QwenLM/Qwen-7B/blob/main/cli_demo.py#L39
+- 模型介绍：<br>
+通义千问-7B（Qwen-7B） 是阿里云研发的通义千问大模型系列的70亿参数规模的模型。Qwen-7B是基于Transformer的大语言模型, 在超大规模的预训练数据上进行训练得到。预训练数据类型多样，覆盖广泛，包括大量网络文本、专业书籍、代码等。同时，在Qwen-7B的基础上，我们使用对齐机制打造了基于大语言模型的AI助手Qwen-7B-Chat。
+- 优化效果：<br>
+  经过生成引擎后，与原始模型针对输入：续写：RTX4090具有760亿个晶体管，16384个CUDA核心，做推理速度对比;
+  以5次推理平均每个生成字符时间为基准，进行对比，效果如下：<br>
 
+| 推理方式 | 平均耗时(单个字符生成) |总耗时 |rouge |
+| :------| ------: | :------: | :------: |
+| Qwen-7B(原始模型)  | 0.03153 | 13.8568|
+| Qwen-7B(TensorRT-LLM)  | 0.01813 | 6.9631 |
+　以上效果可见,加速推理在float16精度快了近１倍速度
+- Docker环境代码编译、运行步骤说明：<br>
+　所有开发项目路径./qwenb_chen路径下.<br>
+    - 步骤1: 依赖模型下载<br>
+   a.创建文件夹
+    /root/workspace/trt2023/QWen-7B-Chat
+　 b.在链接https://huggingface.co/Qwen/Qwen-7B-Chat下载所有文件
+    依次运行以下命令：<br>
+       git lfs install<br>
+       git clone https://huggingface.co/Qwen/Qwen-7B-Chat<br>
+   或者网络不好的情况下：
+   https://pan.baidu.com/s/14XxZ-JO5RfhGJEVs_BEiDA?pwd=8rw4#list/path=%2F
+   下载文件到/root/workspace/trt2023/QWen-7B-Chat路径下.QWen-7B-Chat路径下具体文件如下：<br>
+   ![相对路径的图片](./tensorrt_llm_july-release-v1/qwenb_chen/png/model_files.png)      
+    - 步骤2: 依赖安装<br>
+   安装lfs:<br>
+　　curl -s https://packagecloud.io/instal:l/repositories/github/git-lfs/script.deb.sh | bash<br>
+    apt-get install git-lfs<br>
+    - 步骤3:  导出lm_head的模型参数　　　<br>
 
 ### 送分题答案（可选）
 - 任务１<br>
