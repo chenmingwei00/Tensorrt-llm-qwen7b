@@ -1,0 +1,2 @@
+pip install tiktoken -i  https://pypi.tuna.tsinghua.edu.cn/simple
+pip install transformers_stream_generator -i  https://pypi.tuna.tsinghua.edu.cn/simple

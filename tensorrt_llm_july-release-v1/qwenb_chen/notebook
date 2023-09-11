@@ -1,0 +1,233 @@
+!!!!!!经验之谈一定要每天保存版本
+本次使用chat-glm6B作为基准模型进行修改
+   
+   copy glm模型到my_project-->qwen_7b_chat 
+                my_project-->tensorrt_llm 新增
+                                        --> models
+                                                -->qwen7B
+  所有项目更改均在my_project下
+   1 .export weight of LM
+      修改qwen_7b_chat-->config.json :"use_flash_attn": "false",
+      修改qwen_7b_chat--> modeling_qwen.py 917-951行，保存self.lm_head，此层bias为false,
+      并且要保证模型参数为float16
+          if not os.path.exists("lm.onnx"):
+            print("Export LM.................................")
+
+            if os.getenv('EXPORT_FP16_ONNX') == '1':
+                print("Export FP16 ONNX")
+            else:
+                self.lm_head.float()
+                hidden_states = hidden_states.float()
+            torch.onnx.export( \
+                self.lm_head,
+                hidden_states,
+                "lm.onnx",
+                export_params=True,
+                opset_version=17,
+                do_constant_folding=True,
+                input_names=["inputX"],
+                dynamic_axes={'inputX':{0:'L', 1:'B'}}
+                )
+
+            from copy import deepcopy
+
+            import numpy as np
+            import onnx
+            import onnx_graphsurgeon as gs
+            onnxModel = onnx.load("lm.onnx", load_external_data=False)
+            onnx.load_external_data_for_model(onnxModel, ".")
+            graphLM = gs.import_onnx(onnxModel)
+            weight = deepcopy(graphLM.nodes[0].inputs[1].values.astype(
+                np.float32).reshape(4096, 151936).transpose(1, 0))
+
+            np.save("lm.npy", weight)
+            os.system("rm -rv lm.onnx")
+            print("Finish exporting weight of LM!")
+            exit()
+    最终保存为 lm.npy
+
+  2.利用类静态图方式仿照glm6B模型修改 my_project-->tensorrt_llm
+                                            　--> models
+                                                -->qwen7B　下的model.py 文件
+    新建build.py 主要利用model.py 函数 prepare_inputs 同时debug qwen7B模型,大概修改
+    model.py文件，使得参数名称与qwen7b原始模型参数保持一致．
+    
+    由于运行build.py 需要config.ini
+    因此先运行hf_qwen7b_convert.py，
+    　　　此文件修改６６行　
+    　　　　修改为：
+                model = QWenLMHeadModel.from_pretrained(args.in_file, device_map="auto", trust_remote_code=True, fp16=True).eval()
+                model.generation_config = GenerationConfig.from_pretrained(args.in_file, trust_remote_code=True)
+
+                act_range = {}
+                if args.smoothquant is not None or args.calibrate_kv_cache:
+                    os.environ["TOKENIZERS_PARALLELISM"] = os.environ.get(
+                        "TOKENIZERS_PARALLELISM", "false")
+                    act_range = capture_activation_range(
+                        model, AutoTokenizer.from_pretrained(args.in_file))
+                    if args.smoothquant is not None:
+                        smooth_gpt_model(model, act_range, args.smoothquant)
+
+                config = configparser.ConfigParser()
+                config["qwen7b"] = {}
+                for key in vars(args):
+                    config["qwen7b"][key] = f"{vars(args)[key]}"
+                for k, v in vars(model.config).items():
+                    config["qwen7b"][k] = f"{v}"
+                config["qwen7b"]["weight_data_type"] = args.storage_type
+                with open(saved_dir / "config.ini", 'w') as configfile:
+                    config.write(configfile)
+    修改解析参数函数parse_ft_config，使得key均为qwen7b，具体看函数
+
+    然后debug build.py 与原始模型大概参数一一对照：
+    　　经过发现主要不同之处在于　旋转postionembedding 不同，为此修改初始化postion embedding
+        hf_qwen7b_convert.py 106-->165 lines 
+        同时修改wieght.py文件　１６９－－＞１７４
+
+
+        model.py 初始化函数　　383-->387 lines
+        build.py  --n_positions=8192
+        主要修改postion embedding 文件对应代码在QWenAttention forward 函数中
+    
+    运行hf_qwen7b_convert.py 主要修改加载原始模型参数，保存ｆｔ模型文件一定要与model.py 参数名称保持一致  
+       参数processes暂时修改为１，用于debug
+         我们首先看原始模型　单层layer以及其他参数名称有多少
+         wte.weight
+         ln_1.wegiht
+         c_attn.wetght
+         c_attn.bias 
+         c_proj.weight
+         mlp.w1.weight
+         mlp.w2.weight
+         mlp.c_proj.weight
+         ln_2.weight
+        ln_f.weight
+        
+        参数保存在/root/workspace/tensorrt_llm_july-release-v1/qwenftModel/1-gpu
+
+３．细致微调，利用原始模型输出与ｔｒｔ生成结果法对比进行修改模型，按照how to debug 文件修改即可budeg
+   为了方便调试我们首先设置layer=1，减少build时间
+    build.py
+       a.tensorrt_llm_Qwen7BModel = tensorrt_llm.models.Qwen7BHeadModel(
+                                                                num_layers=1, #args.n_layer,
+       b. load_from_ft  --> 195 line n_layer=1
+    run.py 
+        a.  num_layers =1# config['builder_config']['num_layers']
+
+      generation.py ChatGLM6BHeadModelGenerationSession(GenerationSession):
+       修改_prepare_context_inputs函数
+        position_ids[:, 0, :] = torch.arange(max_input_length)
+        position_ids[:, 1, :] = torch.arange(max_input_length)
+        # position_ids[:, 0, :] = torch.arange(max_input_length)
+        # for i in range(batch_size):
+        #     position_ids[i, 0, max_input_length - 1] = max_input_length - 2
+        #     position_ids[i, 1, max_input_length - 1] = 1
+        #     position_ids[i, :, input_lengths[i]:] = 0
+        position_ids = position_ids.cuda()
+
+    通过修改后，到使用gpt attention plugin之前输入保持一致了，所以需要参考glm6B
+    gpt attention plugin  参数输入的区别
+
+    glm6b
+
+    layers.0.attention.value 1 24 32 128   1 45 32 128 
+    layers.0.attention.query  1 24 32 128  1 45 32 128 
+    layers.0.attention.value 1 24 32 128   1 45 32 128 
+    layers.0.attention.qkv 1 24 12288      1 45 12288
+
+    sequence_length  tensor([24], device='cuda:0', dtype=torch.int32)  45
+    past_key_value_length tensor([0, 1], dtype=torch.int32)        [0,1]
+    masked_tokens all is 0  shape 1,1048    1,1,1069
+    input_lengths 24                        45
+    max_input_length 24                     45
+    cache_indirection 1,1,1048  all is 0    1069
+    past_key_value_0 1 2 32 1048 128        1 2 32 1069 128 
+
+    hight pargram:
+    self.num_attention_heads 32
+    self.attention_head_size 128 
+    self.q_scaling            1
+    self.rotary_embedding_dim 0            not same  qwen7b 128
+    self.neox_rotary_style   True
+    self.multi_block_mode    False
+    self.multi_query_mode,   False
+    kv_orig_quant_scale      None
+    kv_quant_orig_scale      None
+    self.use_int8_kv_cache,  False
+    mask_type=               2
+    经过attention 对比，终于过了attention之后，与原始模型差距0.1697 , 通过以上操作之后，发现一定要细心，第二仔细观察
+    官方给定的函数参数说明，这次主要失误在于没有很好的看gpt_attention.md 以及gpt_attention　函数参数说明，第三也没有
+    去运行以下仿照的glm6b,
+    
+    经过对照，在attention之前，对应的key,query,value 对照一致．为了简单第一次实现，qwen7b原始模型使用普通的multi-head attention;
+    glm6b 实在调用attention之前进行了RoPE的操作，我们也在attention之前也作了类似的操作，但是还是有略微区别
+    ，主要是细节区别，看实现，
+    　　　ｂａｓｅ不一样，
+    　　　ｄｉｍ不同　 base = self.base * ntk_alpha ** (self.dim / (self.dim - 2)) qwen  dim=128  
+            emb = torch.cat((freqs, freqs), dim=-1)
+    　　　qwen 对应的query与key 使用相同的rotary_pos_embed  rotary_pos_emb = (rotary_pos_emb,) * 2 
+         但是对于ｘ的旋转相同，具体细节请看model.py 154-171
+        
+    经过对比之后就剩下attention ,主要修改的关键在以下几点：
+    1. self.rotary_embedding_dim=0 ,与glm6b对照这个参数必须为0,函数参数也说明了
+    　　 rotary_embedding_dim: int
+            The dimension to compute RoPE. Use 0 to disable RoPE.　
+    　　由于已经计算过rope,不需要再次计算
+    ２．scaling = 1.f / (q_scaling * sqrt(head_size)).
+    　　q_scaling尺度因子为1.0
+       原始代码如下：
+        attn_weights = attn_weights / torch.full(
+                [],
+                value.size(-1) ** 0.5,
+                dtype=attn_weights.dtype,
+                device=attn_weights.device,
+            )
+    3.mask_type=1
+        mask_type: int = 1
+            The type of mask:
+                * tensorrt_llm.layers.AttentionMaskType.padding for BERT,
+                * tensorrt_llm.layers.AttentionMaskType.causal for GPT,
+                * tensorrt_llm.layers.AttentionMaskType.bidirectional for ChatGLM,
+       glm is bidirectional but qwen used causal_mask ,so set mask_type=1
+    至此attention 修改完成2023-9-06
+
+
+    当想看模型输入变化时可以这样ｍａｒｋ
+    position_ids_1 = position_ids*1
+    position_ids_1.mark_output('position_ids1',trt.int32)
+
+
+送分提
+　１．
+  Input: Born in north-east France, Soyer trained as a
+  Output:  chef before moving to London in the early
+  2.
+[09/09/2023-08:42:55] [TRT-LLM] [I]  Input : ['(CNN)James Best, best known for his portrayal of bumbling sheriff Rosco P. Coltrane on TV\'s "The Dukes of Hazzard," died Monday after a brief illness. He was 88. Best died in hospice in Hickory, North Carolina, of complications from pneumonia, said Steve Latshaw, a longtime friend and Hollywood colleague. Although he\'d been a busy actor for decades in theater and in Hollywood, Best didn\'t become famous until 1979, when "The Dukes of Hazzard\'s" cornpone charms began beaming into millions of American homes almost every Friday night. For seven seasons, Best\'s Rosco P. Coltrane chased the moonshine-running Duke boys back and forth across the back roads of fictitious Hazzard County, Georgia, although his "hot pursuit" usually ended with him crashing his patrol car. Although Rosco was slow-witted and corrupt, Best gave him a childlike enthusiasm that got laughs and made him endearing. His character became known for his distinctive "kew-kew-kew" chuckle and for goofy catchphrases such as "cuff \'em and stuff \'em!" upon making an arrest. Among the most popular shows on TV in the early \'80s, "The Dukes of Hazzard" ran until 1985 and spawned TV movies, an animated series and video games. Several of Best\'s "Hazzard" co-stars paid tribute to the late actor on social media. "I laughed and learned more from Jimmie in one hour than from anyone else in a whole year," co-star John Schneider, who played Bo Duke, said on Twitter. "Give Uncle Jesse my love when you see him dear friend." "Jimmy Best was the most constantly creative person I have ever known," said Ben Jones, who played mechanic Cooter on the show, in a Facebook post. "Every minute of his long life was spent acting, writing, producing, painting, teaching, fishing, or involved in another of his life\'s many passions." Born Jewel Guy on July 26, 1926, in Powderly, Kentucky, Best was orphaned at 3 and adopted by Armen and Essa Best, who renamed him James and raised him in rural Indiana. Best served in the Army during World War II before launching his acting career. In the 1950s and 1960s, he accumulated scores of credits, playing a range of colorful supporting characters in such TV shows as "The Twilight Zone," "Bonanza," "The Andy Griffith Show" and "Gunsmoke." He later appeared in a handful of Burt Reynolds\' movies, including "Hooper" and "The End." But Best will always be best known for his "Hazzard" role, which lives on in reruns. "Jimmie was my teacher, mentor, close friend and collaborator for 26 years," Latshaw said. "I directed two of his feature films, including the recent \'Return of the Killer Shrews,\' a sequel he co-wrote and was quite proud of as he had made the first one more than 50 years earlier." People we\'ve lost in 2015 . CNN\'s Stella Chan contributed to this story.']
+[09/09/2023-08:42:55] [TRT-LLM] [I] 
+ Reference : ['James Best, who played the sheriff on "The Dukes of Hazzard," died Monday at 88 .\n"Hazzard" ran from 1979 to 1985 and was among the most popular shows on TV .']
+[09/09/2023-08:42:55] [TRT-LLM] [I] 
+ Output : [[' Best died at age 88.']]
+[09/09/2023-08:42:55] [TRT-LLM] [I] ---------------------------------------------------------
+[09/09/2023-08:43:20] [TRT-LLM] [I] TensorRT-LLM (total latency: 2.603541135787964 sec)
+[09/09/2023-08:43:20] [TRT-LLM] [I] TensorRT-LLM beam 0 result
+[09/09/2023-08:43:20] [TRT-LLM] [I]   rouge1 : 15.361040799540035
+[09/09/2023-08:43:20] [TRT-LLM] [I]   rouge2 : 3.854022269668396
+[09/09/2023-08:43:20] [TRT-LLM] [I]   rougeL : 12.078455591738333
+[09/09/2023-08:43:20] [TRT-LLM] [I]   rougeLsum : 13.547802733617264
+[09/09/2023-08:43:20] [TRT-LLM] [I] Hugging Face (total latency: 12.436068534851074 sec)
+[09/09/2023-08:43:20] [TRT-LLM] [I] HF beam 0 result
+[09/09/2023-08:43:20] [TRT-LLM] [I]   rouge1 : 15.732643239575761
+[09/09/2023-08:43:20] [TRT-LLM] [I]   rouge2 : 4.051266423605789
+[09/09/2023-08:43:20] [TRT-LLM] [I]   rougeL : 12.611812188418664
+[09/09/2023-08:43:20] [TRT-LLM] [I]   rougeLsum : 14.014294213871786
+
+
+函数运行时间： 6.9483747482299805
+函数运行时间： 0.018111501950674107
+函数运行时间： 0.018615145139743626
+函数运行时间： 13.434845924377441
+函数运行时间： 0.03353258301230038
+函数运行时间： 0.03588979576207414
+函数运行时间： 0.02786091155531001
+函数运行时间： 0.027842406476481577
+函数运行时间： 0.032528465095607716
