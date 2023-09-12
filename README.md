@@ -15,23 +15,247 @@
 | Qwen-7B(TensorRT-LLM)  | 0.01813 | 6.9631 |
 　以上效果可见,加速推理在float16精度快了近１倍速度
 - Docker环境代码编译、运行步骤说明：<br>
-　所有开发项目路径./qwenb_chen路径下.<br>
-    - 步骤1: 依赖模型下载<br>
-   a.创建文件夹
-    /root/workspace/trt2023/QWen-7B-Chat
-　 b.在链接https://huggingface.co/Qwen/Qwen-7B-Chat下载所有文件
-    依次运行以下命令：<br>
-       git lfs install<br>
-       git clone https://huggingface.co/Qwen/Qwen-7B-Chat<br>
-   或者网络不好的情况下：
-   https://pan.baidu.com/s/14XxZ-JO5RfhGJEVs_BEiDA?pwd=8rw4#list/path=%2F
-   下载文件到/root/workspace/trt2023/QWen-7B-Chat路径下.QWen-7B-Chat路径下具体文件如下：<br>
-   ![相对路径的图片](./tensorrt_llm_july-release-v1/qwenb_chen/png/model_files.png)      
-    - 步骤2: 依赖安装<br>
-   安装lfs:<br>
-　　curl -s https://packagecloud.io/instal:l/repositories/github/git-lfs/script.deb.sh | bash<br>
-    apt-get install git-lfs<br>
-    - 步骤3:  导出lm_head的模型参数　　　<br>
+  - 步骤1:容器启动：<br>
+  nvidia-docker run -it --name trt_2023 registry.cn-hangzhou.aliyuncs.com/trt-hackathon/trt-hackathon:final_v1 /bin/bash<br>
+  - 步骤2: clone 本人的项目，clone到容器/root/workspace<br>
+  git clone https://gitee.com/chenmingwei53/trt2023_qwen7-b.git<br>
+  用户名：chenmingwei53<br>
+  密码：chentian184616(比赛结束后，密码更改)<br> 
+   - 步骤3:依赖安装<br>
+   　安装lfs:
+　　　 curl -s https://packagecloud.io/instal:l/repositories/github/git-lfs/script.deb.sh | bash
+    　 apt-get install git-lfs
+     pip install tiktoken -i https://pypi.tuna.tsinghua.edu.cn/simple
+     pip install onnx_graphsurgeon -i https://pypi.tuna.tsinghua.edu.cn/simple
+   - 步骤4:依赖模型下载<br>
+   　模型下载所在路径：/root/workspace/<br>
+   　链接:https://huggingface.co/Qwen/Qwen-7B-Chat<br>
+     a.网络通顺的情况下：<br>
+     　　 git lfs install<br>
+          git clone https://huggingface.co/Qwen/Qwen-7B-Chat<br>
+     b.用户网络通顺，但服务器网络不好：<br>
+     　手动下载链接https://huggingface.co/Qwen/Qwen-7B-Chat所有文件到/root/workspace/QWen-7B-Chat文件夹内,具体文件如下图内容：<br>
+        ![相对路径的图片](./tensorrt_llm_july-release-v1/qwenb_chen/png/model_files.png)      
+     c.用户网络只能访问百度：<br>
+       大佬提供网盘链接：https://pan.baidu.com/s/14XxZ-JO5RfhGJEVs_BEiDA?pwd=8rw4#list/path=%2F<br>
+       下载文件到Qwen-7B-Chat,注意！！！文件路径必须与b保持一致．
+   -  步骤5:运行前的准备工作,运行：<br>
+  sh ./trt2023_qwen7-b/tensorrt_llm_july-release-v1/qwenb_chen/prepare.sh <br>
+    - 步骤6:  导出lm_head的模型参数　　　<br>
+    cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
+    python exportLM.py
+    - 步骤7:  torch模型文件转化为FT模型文件<br>
+    cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
+    python hf_qwen7b_convert.py
+    - 步骤8:  运行build.py文件，生成qwen7b推理引擎文件,默认构建float 16,使用gpt-attention<br>
+    cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
+    python3 build.py --model_dir=./qwenftModel/1-gpu \
+                 --dtype float16 \
+                 --use_gpt_attention_plugin float16
+    - 步骤9:  运行run.py文件，生成对应的回复内容:<br>
+    cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen<br>
+    python run.py --input_text=续写：RTX4090具有760亿个晶体管，16384个CUDA核心
+                  --engine_dir=./qwen_trtModel
+                  --tokenizer_dir=/root/workspace/QWen-7B-Chat
+### 主要开发工作
+#### 开发工作的难点 
+ 
+- 本次使用了 TensorRT-LLM对新模型qwen7b模型进行模型推理加速，该模型从结构上来看，参考chat-glm6B 
+   并无太大差别，整体结构仍然基于基础架构transformer+lm_head;使用了RotaryEmbedding,与chat-glm6b
+   主要区别在于使用的层输出-norm不同以及旋转矩阵的具体操作不同，具体的如下(以下操作均为普通attention,没有使用flash attention)<br>
+  - 模型与chat-glm6b不同之处：
+   chat-glm6b:　layernorm
+   qwen7b:    RMSNorm
+   旋转矩阵：
+   ````# 显示需要加 # ，Markdown中不需要加
+   chat-glm6b:
+    # add weight of position embedding
+    nMaxSL = 2048
+    inv_freq = 10**(-1 / 16 * np.arange(0, 64, 2, dtype=np.float32))
+    valueTable = np.matmul(
+        np.arange(nMaxSL, dtype=np.float32).reshape(-1, 1),
+        np.concatenate([inv_freq, inv_freq],
+                       axis=0).reshape(1, -1)).reshape(nMaxSL,
+                                                       len(inv_freq) * 2)
+    np.cos(valueTable).astype(storage_type).tofile(saved_dir /
+                                                   "model.cosTable.weight.bin")
+    np.sin(valueTable).astype(storage_type).tofile(saved_dir /
+                                                   "model.sinTable.weight.bin")
+    print("Save model.cosTable.weight.bin")
+    print("Save model.sinTable.weight.bin")
+  ##################################################################################
+  qwen7b:
+    nMaxSL = 8192
+    base=10000.0
+    inv_freq = 1.0 / (base ** (np.arange(0, 128, 2,dtype=np.float32) / 128))
+    # inv_freq = 10**(-1 / 16 * np.arange(0, 64, 2, dtype=np.float32))
+    valueTable = np.matmul(
+        np.arange(nMaxSL, dtype=np.float32).reshape(-1, 1),
+        np.concatenate([inv_freq, inv_freq],
+                       axis=0).reshape(1, -1)).reshape(nMaxSL,
+                                                       len(inv_freq) * 2)  # shape is [2048,64] the relate is for postions
+    # valueTable=rearrange(valueTable, "n d -> 1 n 1 d")
+    cos= np.cos(valueTable) #[:,:64]
+    cos=cos.astype(storage_type).tofile(saved_dir /
+                                                   "model.cosTable.weight.bin")
+    
+    sin= np.sin(valueTable)#[:,:64]
+
+    sin=sin.astype(storage_type).tofile(saved_dir /
+                                               "model.sinTable.weight.bin")
+    print("Save model.cosTable.weight.bin")
+    print("Save model.sinTable.weight.bin")
+  ````
+  以上对比可以发现使用的base基数以及频率域范围不同，chat-glm使用64,qwen7b使用的128这一点复现非常重要;
+  直接影响了每个位置对应的embedding数值．主要区别在于inv_freq数值不同；
+  输入postionid不同
+  　为了复现方便，qwen7b仿照chatglm6b在prepare_input函数保持一致
+  ````
+   position_ids = Tensor(name='position_ids',
+                              dtype=trt.int32,
+                              shape=[-1,2,-1],
+                              dim_range=OrderedDict([
+                                  ('batch_size', [bb_range]),
+                                  ('2', [2]),
+                                  ('input_len', [inlen_range]),
+                              ]))
+  ````
+  但实际的输入发生了本质的变化，
+   ````
+  代码所在位置：tensorrt_llm/runtime/generation.py-->_prepare_context_inputs函数
+  chat-glm6b:
+    position_ids = torch.zeros([batch_size, 2, max_input_length],
+                                   dtype=torch.int32)
+    position_ids[:, 0, :] = torch.arange(max_input_length)
+    for i in range(batch_size):
+        position_ids[i, 0, max_input_length - 1] = max_input_length - 2
+        position_ids[i, 1, max_input_length - 1] = 1
+        position_ids[i, :, input_lengths[i]:] = 0
+  qwen7b:
+    position_ids = torch.zeros([batch_size, 2, max_input_length],
+                                   dtype=torch.int32)
+    position_ids[:, 0, :] = torch.arange(max_input_length)
+    position_ids[:, 1, :] = torch.arange(max_input_length)
+   ````
+  主要是旋转矩阵使用方式不同，具体的：
+    ````
+  　chat-glm6b position_ids 第二个是生成位置为１，其余为0的矩阵输入，对应函数：
+   　def rotate_embedding(x, position_embedding_value):
+        cos0, cos1, sin0, sin1 = position_embedding_value
+
+        x128 = x
+        x64_part0, x64_part1 = x128.split(64, dim=-1)
+
+        x64_part0_rotate = rotate(x64_part0)
+        y64_part0 = x64_part0 * cos0 + x64_part0_rotate * sin0
+
+        x64_part1_rotate = rotate(x64_part1)
+        y64_part1 = x64_part1 * cos1 + x64_part1_rotate * sin1
+
+        y128 = concat([y64_part0, y64_part1], dim=3)
+        y128 = y128.view(shape(x))
+        return y128
+   对应的query,key以64分割，分别使用与　qwen7相同的位置结合操作
+    y64_part0 = x64_part0 * cos0 + x64_part0_rotate * sin0
+  qwen7b之所这样的position_ids输入，原因在于，在实际调试，并没有对query,key分割操作，
+  具体实现如下：
+    def rotate_embedding(x, position_embedding_value,position_embedding_value_sin): # the same to qwen7B ApplyRotaryEmb
+        t_ = (x * position_embedding_value) + (rotate(x) *position_embedding_value_sin)
+        return t_
+  　query = rotate_embedding(query,cos0,sin0) #the same to qwen7B
+    　key = rotate_embedding(key,cos1,sin1)  #pass
+    ````
+  　其余的区别都是一些比较细微的区别，例如残差公式不同：<br>
+  
+         chat-glm6b:
+         hidden_states = hidden_states * 7.484375 + attention_output.data
+         qwen7b:
+         hidden_states = hidden_states + attention_output.data
+
+    - 本次模型主要是用了已有的plugin:gpt_attention;Identity<br>
+    - 复现过程中难点：<br>
+    　可以说是难点非常多,本身对trt不是非常熟练,trtllm更是首次使用,因此困难点
+    　1.刚开始不知道从何下手，通过chat-glm6b对流程有了大概了解，复现起来比较麻烦，急需一个比较简单的
+    　　方式复现，让用户更多时间花在优化精度和效率上，而不是对比原始模型输出上;
+       目前本人复现qwen7b主要是逐层对于原模型以及chatglm6b不同之处;
+      2.模型输出与原始模型输出对比没有一个明确的公式或者对应公式阈值作为参考;
+        开始：dis=abs(a-b).sum() 其中a,b分别代表优化模型输出以及原始模型输出
+        　　　发现对比差距非常大，不能作为参考
+        听取大佬意见：dis=(a-b).sum(),阈值不能超过1,但是发现在for循环经过最后一个RMSNorm时，差距为
+        6.04; 但是实际最终的词汇预测概率lm_logits并没有受太大影响;经过对比lm_logits与原始
+        模型差距仅在千分位，如果保留两位有效数字，那么基本是相同的
+        听取老师意见：dis=(a-b).sum()/a.sum(),利用相对误差，基本发现误差在0.0041,
+        
+        综上所述，需要一个基准误差对比才能更好的，更快的复现，否则像我一直在查找RMSNorm经过后
+        为什么差距变得这么大，其实主要原因在于RMSNorm，有一个pow(2)的操作; 而这种查找是没有太大意义的
+      3.debug 是非常麻烦，需要修改多个地方，每次打印输出都需要重新build,为此不得不，把所有模型的
+      n_layers=1, 这样大大降低了build时间
+      4. debug 无法直接把输入作为self.register_network_output('input_ids', input_ids)
+      　　有时候需要知道在某处输入的实际数值．这样写就会报错，最终不得不：
+        position_ids_1 = position_ids*1
+        position_ids_1.mark_output('position_ids1',trt.int32)
+        这样的操作
+      5. 有关判断语句十分难写，最终导致我放弃了，由于刚开始对gpt_attention参数没有很好了解，按照
+      attention.py去写，由于chat-glm6b的past_key_value不为空，想通过past_key_value_length的变化
+      来判断是否为首次生成，但是是不生效的．至今也无法写出类似的判断．
+      6. Identity的使用竟然影响输出，按照道理来讲，应该让用户使用不需要考虑，变量地址或者其他影响，
+      　　让用户更多花在逻辑和优化上，由于基础太差，具体原因大概是变量地址问题？？？
+### 开发与优化过程
+这一部分是报告的主体。请把自己假定为老师，TensorRT-LLM 的初学者讲述如何从原始模型出发，
+经过一系列开发步骤，得到优化后的TensorRT-LLM 模型。
+建议： 
+- 分步骤讲清楚开发过程
+- 最好能介绍为什么需要某个特别步骤，通过这个特别步骤解决了什么问题
+  - 比如，通过Nsight Systems绘制timeline做了性能分析，发现attention时间占比高且有优化空间
+  （贴图展示分析过程），所以决定要写plugin。然后介绍plugin的设计与实现，并在timeline上显示
+  attention这一部分的性能改进。<br>
+本次实现的是qwen7b在普通模式情况下attention的TensorRT-LLM在精度float16的加速推理
+####1.选择合适的官方大模型熟悉了解TensorRT-LLM优化模型过程
+ &nbsp;&nbsp;&nbsp;&nbsp;拿到任务后，首先就是要了解TensorRT-LLM优化大模型的一般过程是什么，由于大部分大模型都是transformer架构，并且存在
+非常多的重复算法（学习nlp基本都了解国内翻炒的习惯），并且官方给了llama以及chat-glm6b的实现，选择任意一个去学习利用
+TensorRT-LLM优化的一般过程.
+ &nbsp;&nbsp;&nbsp;&nbsp;通过学习chatglm后，实现优化主要：<br>
+   - a.原始模型参数hf_chatglm6b_convert.py文件转化为FT模型文件．
+ 说的通俗点就是转化为array类型矩阵，具体为什么，稍后讲解，先说大概流程;<br>
+   - b.上一步骤产生的 array类型矩阵主要在这一步build模型来初始化 tensorrt_llm.models.ChatGLM6BHeadModel（）
+   　模型的；为此我们知道我们需要实现类似ChatGLM6BHeadModel模型，那么这个是使用TensorRT-LLM的核心，说实话初步使用感觉
+   有点像静态图．我们点进去发现实现ChatGLM6BHeadModel类的文件在tensorrt_llm/models/chatglm6b/model.py
+   因此实现新的模型需要实现这个核心文件;阅读build.py 文件发现3个关键处，模型初始化，加载模型参数，模型静态图推理．
+   利用这三个基本上就能搞定新模型的优化实现．
+   -c.作为一个开发人员一定会优先想要了解如何debug,没有debug就很大程度影响开发进度，虽然步骤b静态图可以对逻辑进行修改，
+   　有时候具体数值是检验代码是否有bug的关键，通过寻找发现docs/2023-05-19-how-to-debug.md给了gpt的debug方法;
+     具体位置在2023-05-19-how-to-debug.md的67行之后．然后结合run.py基本上就了解了整个开发新模型的一般过程．run.py通过阅读
+     当然一定要有bert系类生成模型的基础才好阅读，其本质就是解码过程核心在tensorrt_llm/runtime/generation.py
+       self.dynamic_decoder = torch.classes.FasterTransformer.DynamicDecodeOp(
+            self.vocab_size, self.vocab_size_padded, self.mapping.tp_size,
+            pp_size, torch.float32)
+       由代码可知具体解码调用的torch，generation主要作用是对数据进行准备，类似ｔｒｔ模型推理的那个过程（）：
+       　➢ 创建 Context
+        ➢ Buffer 准备（Host 端 + Device 端）
+        ➢ Buffer 拷贝 Host to Device
+        ➢ 执行推理（Execute）
+        ➢ Buffer 拷贝 Device to Host
+####２.初步构建qwen7b模型
+&nbsp;&nbsp;&nbsp;&nbsp;有了步骤１的学习和分析，可知模型结构基本相似，<br>
+➢ a.首先在tensorrt_llm/models/文件夹中创建qwen7B文件库以及__init__.py，model.py文件，优先使用chatglm6b下的文件复制过来,
+  并且下载qwen_7b_chat模型文件．对比modeling_qwen.py修改对应model.py的类名，函数名，变量名．这样初步模型构建完成．
+  其次在tensorrt_llm/models/的__init__.py文件添加我们实现的模型文件，具体如下：
+  ````
+...
+from .qwen7B.model import Qwen7BHeadModel, Qwen7BModel
+__all__ = [
+    ...,
+    'Qwen7BModel'
+]
+   ````     
+   　
+   
+   
+
+
+
+    
+
 
 ### 送分题答案（可选）
 - 任务１<br>
