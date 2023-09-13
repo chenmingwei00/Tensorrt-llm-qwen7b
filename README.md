@@ -207,20 +207,18 @@
         position_ids_1.mark_output('position_ids1',trt.int32)
         这样的操作
        ````
-      e. 有关判断语句十分难写，最终导致我放弃了attention自己实现，由于刚开始对gpt_attention参数没有很好了解，按照
+      5. 有关判断语句十分难写，最终导致我放弃了attention自己实现，由于刚开始对gpt_attention参数没有很好了解，按照
       attention.py去写，由于chat-glm6b的past_key_value不为空，想通过past_key_value_length的变化
       来判断是否为首次生成，但是是不生效的．至今也无法写出类似的判断．<br>
-      f. Identity的使用竟然影响输出，按照道理来讲，应该让用户使用不需要考虑，变量地址或者其他影响,让用户更多花在逻辑和优化上，由于基础太差，具体原因大概是变量地址问题？？？
+      6. Identity的使用竟然影响输出，按照道理来讲，应该让用户使用不需要考虑，变量地址或者其他影响,让用户更多花在逻辑和优化上，由于基础太差，具体原因大概是变量地址问题？？？
 ### 开发与优化过程
 这一部分是报告的主体。请把自己假定为老师，TensorRT-LLM 的初学者讲述如何从原始模型出发，
 经过一系列开发步骤，得到优化后的TensorRT-LLM 模型。
 建议： 
 - 分步骤讲清楚开发过程
 - 最好能介绍为什么需要某个特别步骤，通过这个特别步骤解决了什么问题
-  - 比如，通过Nsight Systems绘制timeline做了性能分析，发现attention时间占比高且有优化空间
-  （贴图展示分析过程），所以决定要写plugin。然后介绍plugin的设计与实现，并在timeline上显示
-  attention这一部分的性能改进。<br>
-本次实现的是qwen7b在普通模式情况下attention的TensorRT-LLM在精度float16的加速推理
+  
+本次实现的是qwen7b在普通模式情况下attention的TensorRT-LLM在精度float16的加速推理<br>
 ####1.选择合适的官方大模型熟悉了解TensorRT-LLM优化模型过程
  &nbsp;&nbsp;&nbsp;&nbsp;拿到任务后，首先就是要了解TensorRT-LLM优化大模型的一般过程是什么，由于大部分大模型都是transformer架构，并且存在
 非常多的重复算法（学习nlp基本都了解国内翻炒的习惯），并且官方给了llama以及chat-glm6b的实现，选择任意一个去学习利用
