@@ -38,7 +38,7 @@
    　模型下载到容器路径：/root/workspace/<br>
    　链接:https://huggingface.co/Qwen/Qwen-7B-Chat<br>
      a.网络通顺的情况下：<br>
-     　　git lfs install<br>
+     　git lfs install<br>
   &nbsp; &nbsp; git clone https://huggingface.co/Qwen/Qwen-7B-Chat<br>
      b.用户网络通顺，但服务器网络不好：<br>
      　手动下载链接https://huggingface.co/Qwen/Qwen-7B-Chat所有文件到/root/workspace/QWen-7B-Chat文件夹内,具体文件如下图内容：<br>
