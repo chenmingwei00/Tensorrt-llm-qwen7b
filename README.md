@@ -219,7 +219,7 @@
 - 最好能介绍为什么需要某个特别步骤，通过这个特别步骤解决了什么问题
   
 本次实现的是qwen7b在普通模式情况下attention的TensorRT-LLM在精度float16的加速推理<br>
-####1.选择合适的官方大模型熟悉了解TensorRT-LLM优化模型过程
+#### 1.选择合适的官方大模型熟悉了解TensorRT-LLM优化模型过程
  &nbsp;&nbsp;&nbsp;&nbsp;拿到任务后，首先就是要了解TensorRT-LLM优化大模型的一般过程是什么，由于大部分大模型都是transformer架构，并且存在
 非常多的重复算法（学习nlp基本都了解国内翻炒的习惯），并且官方给了llama以及chat-glm6b的实现，选择任意一个去学习利用
 TensorRT-LLM优化的一般过程.
