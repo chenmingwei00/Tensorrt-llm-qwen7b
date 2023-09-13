@@ -118,8 +118,8 @@
     print("Save model.sinTable.weight.bin")
   ````
   以上对比可以发现使用的base基数以及频率域范围不同，chat-glm使用64,qwen7b使用的128这一点复现非常重要;
-  直接影响了每个位置对应的embedding数值．主要区别在于inv_freq数值不同；
-  输入postion_ids不同.<br>
+  直接影响了每个位置对应的embedding数值．主要区别在于inv_freq数值不同,
+  导致输入postion_ids不同.<br>
   为了复现方便，qwen7b仿照chatglm6b在prepare_input函数保持一致
   ````
    position_ids = Tensor(name='position_ids',
@@ -142,6 +142,7 @@
         position_ids[i, 0, max_input_length - 1] = max_input_length - 2
         position_ids[i, 1, max_input_length - 1] = 1
         position_ids[i, :, input_lengths[i]:] = 0
+  －－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
   qwen7b:
     position_ids = torch.zeros([batch_size, 2, max_input_length],
                                    dtype=torch.int32)
@@ -166,7 +167,7 @@
         y128 = concat([y64_part0, y64_part1], dim=3)
         y128 = y128.view(shape(x))
         return y128
-   对应的query,key以64分割，分别使用与　qwen7相同的位置结合操作
+   对应的query,key以64分割，分别使用, 与qwen7相同的位置结合操作
     y64_part0 = x64_part0 * cos0 + x64_part0_rotate * sin0
   qwen7b之所这样的position_ids输入，原因在于，在实际调试，并没有对query,key分割操作，
   具体实现如下：
@@ -185,32 +186,31 @@
 
     - 本次模型主要是用了已有的plugin:gpt_attention;Identity<br>
     - 复现过程中难点：<br>
-    　可以说是难点非常多,本身对trt不是非常熟练,trtllm更是首次使用,因此困难点
-    　1.刚开始不知道从何下手，通过chat-glm6b对流程有了大概了解，复现起来比较麻烦，急需一个比较简单的
-    　　方式复现，让用户更多时间花在优化精度和效率上，而不是对比原始模型输出上;
-       目前本人复现qwen7b主要是逐层对于原模型以及chatglm6b不同之处;
-      2.模型输出与原始模型输出对比没有一个明确的公式或者对应公式阈值作为参考;
-        开始：dis=abs(a-b).sum() 其中a,b分别代表优化模型输出以及原始模型输出
-        　　　发现对比差距非常大，不能作为参考
+    　可以说是难点非常多,本身对trt不是非常熟练,trtllm更是首次使用,因此困难点<br>
+      1.  刚开始不知道从何下手，通过chat-glm6b对流程有了大概了解，复现起来比较麻烦，
+    急需一个比较简单的方式复现，让用户更多时间花在优化精度和效率上，而不是对比原始模型输出上;
+       目前本人复现qwen7b主要是逐层对于原模型以及chatglm6b不同之处;<br>
+      2. 模型输出与原始模型输出对比没有一个明确的公式或者对应公式阈值作为参考.
+        开始：dis=abs(a-b).sum() 其中a,b分别代表优化模型输出以及原始模型输出,发现对比差距非常大，不能作为参考
         听取大佬意见：dis=(a-b).sum(),阈值不能超过1,但是发现在for循环经过最后一个RMSNorm时，差距为
-        6.04; 但是实际最终的词汇预测概率lm_logits并没有受太大影响;经过对比lm_logits与原始
+        6.04; 而际最终的词汇预测概率lm_logits并没有受太大影响;经过对比lm_logits与原始
         模型差距仅在千分位，如果保留两位有效数字，那么基本是相同的
-        听取老师意见：dis=(a-b).sum()/a.sum(),利用相对误差，基本发现误差在0.0041,
-        
-        综上所述，需要一个基准误差对比才能更好的，更快的复现，否则像我一直在查找RMSNorm经过后
-        为什么差距变得这么大，其实主要原因在于RMSNorm，有一个pow(2)的操作; 而这种查找是没有太大意义的
-      3.debug 是非常麻烦，需要修改多个地方，每次打印输出都需要重新build,为此不得不，把所有模型的
-      n_layers=1, 这样大大降低了build时间
+        听取老师意见：dis=(a-b).sum()/a.sum(),利用相对误差，基本发现误差在0.0041．<br>
+     &nbsp; &nbsp; 综上所述，需要一个基准误差对比才能更好的，更快的复现，否则像我一直在查找RMSNorm经过后
+        为什么差距变得这么大，其实主要原因在于RMSNorm，有一个pow(2)的操作; 而这种查找是没有太大意义的.<br>
+      3. debug 是非常麻烦，需要修改多个地方，每次打印输出都需要重新build,为此不得不，把所有模型的
+      n_layers=1, 这样才能大大降低了build时间
       4. debug 无法直接把输入作为self.register_network_output('input_ids', input_ids)
-      　　有时候需要知道在某处输入的实际数值．这样写就会报错，最终不得不：
+      　　有时候需要知道在某处输入的实际数值．这样写就会报错，最终不得不：<br>
+       ````
         position_ids_1 = position_ids*1
         position_ids_1.mark_output('position_ids1',trt.int32)
         这样的操作
-      5. 有关判断语句十分难写，最终导致我放弃了，由于刚开始对gpt_attention参数没有很好了解，按照
+       ````
+      e. 有关判断语句十分难写，最终导致我放弃了attention自己实现，由于刚开始对gpt_attention参数没有很好了解，按照
       attention.py去写，由于chat-glm6b的past_key_value不为空，想通过past_key_value_length的变化
-      来判断是否为首次生成，但是是不生效的．至今也无法写出类似的判断．
-      6. Identity的使用竟然影响输出，按照道理来讲，应该让用户使用不需要考虑，变量地址或者其他影响，
-      　　让用户更多花在逻辑和优化上，由于基础太差，具体原因大概是变量地址问题？？？
+      来判断是否为首次生成，但是是不生效的．至今也无法写出类似的判断．<br>
+      f. Identity的使用竟然影响输出，按照道理来讲，应该让用户使用不需要考虑，变量地址或者其他影响,让用户更多花在逻辑和优化上，由于基础太差，具体原因大概是变量地址问题？？？
 ### 开发与优化过程
 这一部分是报告的主体。请把自己假定为老师，TensorRT-LLM 的初学者讲述如何从原始模型出发，
 经过一系列开发步骤，得到优化后的TensorRT-LLM 模型。
