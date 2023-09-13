@@ -73,10 +73,10 @@
  
 - 本次使用了 TensorRT-LLM对新模型qwen7b模型进行模型推理加速，该模型从结构上来看，参考chat-glm6B 
    并无太大差别，整体结构仍然基于基础架构transformer+lm_head;使用了RotaryEmbedding,与chat-glm6b
-   主要区别在于使用的层输出-norm不同以及旋转矩阵的具体操作不同，具体的如下(以下操作均为普通attention,没有使用flash attention)<br>
-  - 模型与chat-glm6b不同之处：
-   chat-glm6b:　layernorm
-   qwen7b:    RMSNorm
+   主要区别在于使用的层输出-norm不同以及旋转矩阵的详细操作不同，具体的如下(以下操作均为普通attention,没有使用flash attention)<br>
+  - 模型与chat-glm6b不同之处：<br>
+   chat-glm6b:　layernorm<br>
+   qwen7b:    RMSNorm<br>
    旋转矩阵：
    ````# 显示需要加 # ，Markdown中不需要加
    chat-glm6b:
@@ -119,8 +119,8 @@
   ````
   以上对比可以发现使用的base基数以及频率域范围不同，chat-glm使用64,qwen7b使用的128这一点复现非常重要;
   直接影响了每个位置对应的embedding数值．主要区别在于inv_freq数值不同；
-  输入postionid不同
-  　为了复现方便，qwen7b仿照chatglm6b在prepare_input函数保持一致
+  输入postion_ids不同.<br>
+  为了复现方便，qwen7b仿照chatglm6b在prepare_input函数保持一致
   ````
    position_ids = Tensor(name='position_ids',
                               dtype=trt.int32,
