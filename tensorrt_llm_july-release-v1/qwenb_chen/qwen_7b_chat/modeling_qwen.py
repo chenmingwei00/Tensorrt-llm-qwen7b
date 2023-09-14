@@ -915,7 +915,7 @@ class QWenLMHeadModel(QWenPreTrainedModel):
         lm_logits = self.lm_head(hidden_states)
 
         # save after chatglm6B lm.npy
-        if not os.path.exists("lm.onnx"):
+        if not os.path.exists("lm.npy"):
             print("Export LM.................................")
 
             if os.getenv('EXPORT_FP16_ONNX') == '1':
