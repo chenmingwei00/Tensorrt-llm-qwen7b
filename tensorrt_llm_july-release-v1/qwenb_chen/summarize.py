@@ -97,7 +97,8 @@ def main(args):
     else:
         import pickle
         cahe_data_path='/root/.cache/huggingface/datasets/cnn_dailymail/3.0.0/3.0.0/0107f7388b5c6fae455a5661bcd134fc22da53ea75852027040d8d1e997f101f/'
-        os.makedirs(cahe_data_path)
+        if os.path.exists(cahe_data_path)==False:
+            os.makedirs(cahe_data_path)
         os.system("cp /root/workspace/cnn_dailymail/* {}".format(cahe_data_path))
         files=open('./datasets/dataset.pkl','rb')
         dataset=pickle.load(files)
@@ -351,7 +352,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--dataset_path', type=str, default='./datasets/cnn_dailymail.py')
     parser.add_argument('--log_level', type=str, default='info')
-    parser.add_argument('--engine_dir', type=str, default='/root/workspace/tensorrt_llm_july-release-v1/qwen_trtModel')
+    parser.add_argument('--engine_dir', type=str, default='/root/workspace/tensorrt_llm_july-release-v1/qwenb_chen/qwen_trtModel')
     parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--max_ite', type=int, default=20)
     parser.add_argument('--output_len', type=int, default=100)
