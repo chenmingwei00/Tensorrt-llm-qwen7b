@@ -469,25 +469,25 @@ __all__ = [
    &ensp; &ensp;/root/workspace/tensorrt_llm_july-release-v1/examples/gpt/README 里面 “Summarization using the GPT model” 部分如下命令的rouge 分数
      - python3 summarize.py --engine_dirtrt_engine/gpt2/fp16/1-gpu --test_hf  --batch_size1  --test_trt_llm  --hf_model_location=gpt2 --check_accuracy --tensorrt_llm_rouge1_threshold=14 
      <br>
-    - 运行结果为：<br>
-    [09/09/2023-08:42:55] [TRT-LLM] [I]  Input : ['(CNN)James Best, best known for his......contributed to this story.']<br>
-[09/09/2023-08:42:55] [TRT-LLM] [I] <br>
- Reference : ['James Best, who played the sheriff on "The Dukes of Hazzard," died Monday at 88 .\n"Hazzard" ran from 1979 to 1985 and was among the most popular shows on TV .']<br>
-[09/09/2023-08:42:55] [TRT-LLM] [I]<br>
- Output : [[' Best died at age 88.']]<br>
-[09/09/2023-08:42:55] [TRT-LLM] [I] ---------------------------------------------------------<br>
-[09/09/2023-08:43:20] [TRT-LLM] [I] TensorRT-LLM (total latency: 2.603541135787964 sec)<br>
-[09/09/2023-08:43:20] [TRT-LLM] [I] TensorRT-LLM beam 0 result<br>
-[09/09/2023-08:43:20] [TRT-LLM] [I]   rouge1 : 15.361040799540035<br>
-[09/09/2023-08:43:20] [TRT-LLM] [I]   rouge2 : 3.854022269668396<br>
-[09/09/2023-08:43:20] [TRT-LLM] [I]   rougeL : 12.078455591738333<br>
-[09/09/2023-08:43:20] [TRT-LLM] [I]   rougeLsum : 13.547802733617264<br>
-[09/09/2023-08:43:20] [TRT-LLM] [I] Hugging Face (total latency: 12.436068534851074 sec)<br>
-[09/09/2023-08:43:20] [TRT-LLM] [I] HF beam 0 result<br>
-[09/09/2023-08:43:20] [TRT-LLM] [I]   rouge1 : 15.732643239575761<br>
-[09/09/2023-08:43:20] [TRT-LLM] [I]   rouge2 : 4.051266423605789<br>
-[09/09/2023-08:43:20] [TRT-LLM] [I]   rougeL : 12.611812188418664<br>
-[09/09/2023-08:43:20] [TRT-LLM] [I]   rougeLsum : 14.014294213871786<br>
+     - 运行结果为：<br>
+ &nbsp;&nbsp; &nbsp;[09/09/2023-08:42:55] [TRT-LLM] [I]  Input : ['(CNN)James Best, best known for his......contributed to this story.']<br>
+ &nbsp;&nbsp; &nbsp;[09/09/2023-08:42:55] [TRT-LLM] [I] <br>
+ &nbsp;&nbsp; &nbsp;Reference : ['James Best, who played the sheriff on "The Dukes of Hazzard," died Monday at 88 .\n"Hazzard" ran from 1979 to 1985 and was among the most popular shows on TV .']<br>
+ &nbsp;&nbsp; &nbsp;[09/09/2023-08:42:55] [TRT-LLM] [I]<br>
+ &nbsp;&nbsp; &nbsp;Output : [[' Best died at age 88.']]<br>
+ &nbsp;&nbsp; &nbsp;[09/09/2023-08:42:55] [TRT-LLM] [I] ---------------------------------------------------------<br>
+ &nbsp;&nbsp; &nbsp;[09/09/2023-08:43:20] [TRT-LLM] [I] TensorRT-LLM (total latency: 2.603541135787964 sec)<br>
+ &nbsp;&nbsp; &nbsp;[09/09/2023-08:43:20] [TRT-LLM] [I] TensorRT-LLM beam 0 result<br>
+ &nbsp;&nbsp; &nbsp;[09/09/2023-08:43:20] [TRT-LLM] [I]   rouge1 : 15.361040799540035<br>
+ &nbsp;&nbsp; &nbsp;[09/09/2023-08:43:20] [TRT-LLM] [I]   rouge2 : 3.854022269668396<br>
+ &nbsp;&nbsp; &nbsp;[09/09/2023-08:43:20] [TRT-LLM] [I]   rougeL : 12.078455591738333<br>
+ &nbsp;&nbsp; &nbsp;[09/09/2023-08:43:20] [TRT-LLM] [I]   rougeLsum : 13.547802733617264<br>
+ &nbsp;&nbsp; &nbsp;[09/09/2023-08:43:20] [TRT-LLM] [I] Hugging Face (total latency: 12.436068534851074 sec)<br>
+ &nbsp;&nbsp; &nbsp;[09/09/2023-08:43:20] [TRT-LLM] [I] HF beam 0 result<br>
+ &nbsp;&nbsp; &nbsp;[09/09/2023-08:43:20] [TRT-LLM] [I]   rouge1 : 15.732643239575761<br>
+ &nbsp;&nbsp; &nbsp;[09/09/2023-08:43:20] [TRT-LLM] [I]   rouge2 : 4.051266423605789<br>
+ &nbsp;&nbsp; &nbsp;[09/09/2023-08:43:20] [TRT-LLM] [I]   rougeL : 12.611812188418664<br>
+ &nbsp;&nbsp; &nbsp;[09/09/2023-08:43:20] [TRT-LLM] [I]   rougeLsum : 14.014294213871786<br>
   - 运行说明：<br>
         这个子任务主要是利用trtllm按照和任务１相同操作获取GPT2 weights对应的加速引擎，对摘要提取任务进行推理，并且获取对应的rouge分数;<br>
         主要困难点在于summarize.py加载ccdv/cnn_dailymail数据集以及加载rouge评估，均需要从huggingface下载，所提供服务器均下载失败，<br>
