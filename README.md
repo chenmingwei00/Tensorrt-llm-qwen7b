@@ -79,8 +79,8 @@
    - 步骤10:  运行summarize.py文件，生成摘要评测指标:<br>
  ````
      cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
-     python summarize.py --test_hf=True --test_trt_llm=False
-     python summarize.py --test_hf=False --test_trt_llm=True
+     python summarize.py --test_hf
+     python summarize.py --test_trt_llm
  ````
 ### 主要开发工作
 #### 开发工作的难点 
