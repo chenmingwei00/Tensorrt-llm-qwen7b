@@ -245,7 +245,8 @@ TensorRT-LLM优化的一般过程.<br>
         ➢ Buffer 拷贝 Host to Device<br>
         ➢ 执行推理（Execute）<br>
         ➢ Buffer 拷贝 Device to Host<br>
-####２.初步构建qwen7b模型
+        
+####２. 初步构建qwen7b模型
 &nbsp;&nbsp;&nbsp;&nbsp;有了步骤１的学习和分析，可知模型结构基本相似，<br>
 ➢ a.初步新模型构建<br>
 　  首先在tensorrt_llm/models/文件夹中创建qwen7B文件库以及__init__.py，model.py文件，优先使用chatglm6b下的文件复制过来,
