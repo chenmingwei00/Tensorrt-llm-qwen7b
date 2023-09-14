@@ -20,7 +20,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--max_output_len', type=int, default=1024)
     parser.add_argument('--log_level', type=str, default='info')
-    parser.add_argument('--engine_dir', type=str, default='/root/workspace/tensorrt_llm_july-release-v1/qwen_trtModel')
+    parser.add_argument('--engine_dir', type=str, default='./qwen_trtModel')
     parser.add_argument(
         '--input_text',
         type=str,

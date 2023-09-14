@@ -455,7 +455,15 @@ __all__ = [
 | Qwen-7B(原始模型HF)| 74.0851 | 25.8615|8.8051|18.0820|22.1695|
 | Qwen-7B(TensorRT-LLM)  | 46.6413 | 27.9374 |8.6715|19.3419|23.4794|
 
-通过对比分析可知,进行优化后大幅度提高了模型推理的速度,并且rouge分数基本没有损失,以上操作均在float16精度下进行的.
+通过对比分析可知,进行优化后大幅度提高了模型推理的速度,并且rouge分数基本没有损失,以上操作均在float16精度下进行的.<br>
+硬件信息：<br>
+GPU:<br>
+     &nbsp; &nbsp;    ![相对路径的图片](./tensorrt_llm_july-release-v1/qwenb_chen/png/nvidia.png)  
+CPU:<br>
+  &nbsp; &nbsp;    ![相对路径的图片](./tensorrt_llm_july-release-v1/qwenb_chen/png/cpu.png)  
+内存：<br>
+  &nbsp; &nbsp;    ![相对路径的图片](./tensorrt_llm_july-release-v1/qwenb_chen/png/neicun.png)  
+
 ### 送分题答案（可选）
 - 任务１<br>
 　/root/workspace/tensorrt_llm_july-release-v1/examples/gpt/README 里面 “Single node, single GPU” 部分如下命令的输出（10分）
@@ -505,3 +513,7 @@ __all__ = [
          虽然下载速度慢，但基本上能够下载完整;第一个问题也就解决了<br><br>
         b.同理　load_metric("rouge")--->load_metric('/root/workspace/trt2023/rouge/rouge.py')　即可解决
 
+### 经验与体会（可选）
+   使用trtllm感慨一番,难度虽然有，但是加速速度确实增加了,这对于大模型落地意义非常大,经过自己亲身复现,暗暗下定决定
+   一定要认真阅读trt所有概念,目前对plugin怎么添加使用还不怎么会,通过这次竞赛让我了解了trt对于实际作用必要性.总而言之
+   学无止尽.

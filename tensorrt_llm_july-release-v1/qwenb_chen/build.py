@@ -44,7 +44,7 @@ def parse_arguments():
                         type=int,
                         default=1,
                         help='world size, only support tensor parallelism now')
-    parser.add_argument('--model_dir', type=str, default='/root/workspace/tensorrt_llm_july-release-v1/qwenftModel/1-gpu')
+    parser.add_argument('--model_dir', type=str, default='./qwenftModel/1-gpu')
     parser.add_argument('--dtype',
                         type=str,
                         default='float16',
@@ -107,7 +107,7 @@ def parse_arguments():
     parser.add_argument(
         '--output_dir',
         type=str,
-        default='qwen_trtModel',
+        default='./qwen_trtModel',
         help=
         'The path to save the serialized engine files, timing cache file and model configs'
     )

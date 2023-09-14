@@ -169,7 +169,7 @@ if __name__ == "__main__":
     parser.add_argument('--in-file',
                         '-i',
                         type=str,
-                        default="/root/workspace/trt2023/QWen-7B-Chat/",
+                        default="/root/workspace/QWen-7B-Chat/",
                         help='file name of input checkpoint file',
                         required=False)
     parser.add_argument('--tensor-parallelism',
