@@ -246,7 +246,7 @@ TensorRT-LLM优化的一般过程.<br>
         ➢ 执行推理（Execute）<br>
         ➢ Buffer 拷贝 Device to Host<br>
 
-#### 2.初步构建qwen7b模型
+#### 2.构建qwen7b模型
         
 &nbsp;&nbsp;&nbsp;&nbsp;有了步骤１的学习和分析，可知模型结构基本相似，<br>
 ➢ a.初步新模型构建<br>
