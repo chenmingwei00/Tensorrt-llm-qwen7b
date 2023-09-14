@@ -72,8 +72,8 @@
    - 步骤9:  运行run.py文件，生成对应的回复内容:<br>
  ````
     cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
-    python run.py --input_text=续写：RTX4090具有760亿个晶体管，16384个CUDA核心
-                  --engine_dir=./qwen_trtModel
+    python run.py --input_text=续写：RTX4090具有760亿个晶体管，16384个CUDA核心\
+                  --engine_dir=./qwen_trtModel\
                   --tokenizer_dir=/root/workspace/QWen-7B-Chat
  ````   
    - 步骤10:  运行summarize.py文件，生成摘要评测指标:<br>
