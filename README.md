@@ -55,26 +55,36 @@
    &nbsp;下载文件到Qwen-7B-Chat,注意！！！文件路径必须与b保持一致．
    -  步骤5:运行前的准备工作,运行：<br>
   sh ./trt2023_qwen7-b/tensorrt_llm_july-release-v1/qwenb_chen/prepare.sh <br>
-    - 步骤6:  导出lm_head的模型参数　　　<br>
-    cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen　<br>
-    python exportLM.py
-    - 步骤7:  torch模型文件转化为FT模型文件<br>
-    cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen　<br>
+   - 步骤6:  导出lm_head的模型参数
+ ````
+    cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
+    python exportLM.py<br>
+ ````
+   - 步骤7:  torch模型文件转化为FT模型文件<br>
+ ````
+    cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
     python hf_qwen7b_convert.py
-    - 步骤8:  运行build.py文件，生成qwen7b推理引擎文件,默认构建float 16,使用gpt-attention<br>
-    cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen　<br>
+ ````
+   - 步骤8:  运行build.py文件，生成qwen7b推理引擎文件,默认构建float 16,使用gpt-attention<br>
+ ````
+    cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
     python3 build.py --model_dir=./qwenftModel/1-gpu \
                  --dtype float16 \
                  --use_gpt_attention_plugin float16
-    - 步骤9:  运行run.py文件，生成对应的回复内容:<br>
-    cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen<br>
+ ````
+   - 步骤9:  运行run.py文件，生成对应的回复内容:<br>
+ ````
+    cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
     python run.py --input_text=续写：RTX4090具有760亿个晶体管，16384个CUDA核心
                   --engine_dir=./qwen_trtModel
                   --tokenizer_dir=/root/workspace/QWen-7B-Chat
-    - 步骤10:  运行summarize.py文件，生成摘要评测指标:<br>
-     cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen<br>
-     python summarize.py --test_hf=True --test_trt_llm=False<br>
+ ````   
+   - 步骤10:  运行summarize.py文件，生成摘要评测指标:<br>
+ ````
+     cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
+     python summarize.py --test_hf=True --test_trt_llm=False
      python summarize.py --test_hf=False --test_trt_llm=True
+ ````
 ### 主要开发工作
 #### 开发工作的难点 
  
