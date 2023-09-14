@@ -26,7 +26,7 @@
 - Docker环境代码编译、运行步骤说明：<br>
   - 步骤1:容器启动：<br>
   ````
-  nvidia-docker run -it --name trt_2023 registry.cn-hangzhou.aliyuncs.com/trt-hackathon/trt-hackathon:final_v1 /bin/bash<br>
+  nvidia-docker run -it --name trt_2023 registry.cn-hangzhou.aliyuncs.com/trt-hackathon/trt-hackathon:final_v1  -v /root:/root/workspace/trt2023 /bin/bash<br>
    ````
   - 步骤2: clone 本人的项目到容器路径/root/workspace下<br>
   &nbsp; git clone https://gitee.com/chenmingwei53/trt2023_qwen7-b.git<br>
@@ -37,19 +37,22 @@
   sh ./trt2023_qwen7-b/tensorrt_llm_july-release-v1/qwenb_chen/install_package.sh 
   ```` 
    - 步骤4:依赖模型下载<br>
-   　模型下载到容器路径：/root/workspace/<br>
-   　链接:https://huggingface.co/Qwen/Qwen-7B-Chat<br>
-     a.网络通顺的情况下：<br>
+   　(1) Qwen-7B-Chat模型下载到服务器路径：/root/Qwen-7B-Chat/<br>
+   　  &nbsp;&nbsp;  链接:https://huggingface.co/Qwen/Qwen-7B-Chat<br>
+       &nbsp;   &nbsp;   &nbsp; a.网络通顺的情况下：<br>
   ````
-     　 git lfs install
-        git clone https://huggingface.co/Qwen/Qwen-7B-Chat
+       　     git lfs install
+              git clone https://huggingface.co/Qwen/Qwen-7B-Chat
    ````    
- &nbsp; &nbsp; &nbsp; &nbsp; b.用户网络通顺，但服务器网络不好：<br>
-     　手动下载链接https://huggingface.co/Qwen/Qwen-7B-Chat所有文件到/root/workspace/QWen-7B-Chat文件夹内,具体文件如下图内容：<br>
-     &nbsp; &nbsp;    ![相对路径的图片](./tensorrt_llm_july-release-v1/qwenb_chen/png/model_files.png)      
-     c.用户网络只能访问百度：<br>
- &nbsp;大佬提供网盘链接：https://pan.baidu.com/s/14XxZ-JO5RfhGJEVs_BEiDA?pwd=8rw4#list/path=%2F<br>
-   &nbsp;下载文件到Qwen-7B-Chat,注意！！！文件路径必须与b保持一致．
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;b.用户网络通顺，但服务器网络不好：<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    　手动下载链接https://huggingface.co/Qwen/Qwen-7B-Chat所有文件到/root/workspace/QWen-7B-Chat文件夹内,具体文件如下图内容：<br>
+    &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp;    ![相对路径的图片](./tensorrt_llm_july-release-v1/qwenb_chen/png/model_files.png)      
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;c.用户网络只能访问百度：<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;大佬提供网盘链接：https://pan.baidu.com/s/14XxZ-JO5RfhGJEVs_BEiDA?pwd=8rw4#list/path=%2F<br>
+   &nbsp;下载文件到Qwen-7B-Chat,注意！！！文件路径必须与b保持一致．<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    (2)summary　cnn_dailymail数据下载到服务器路径：/root/Qwen-7B-Chat/cnn_dailymail：<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   链接：https://pan.baidu.com/s/1yteFl5YPzhVg8maUd2jqfg?pwd=usyn 
+提取码：usyn
    -  步骤5:运行前的准备工作,运行：<br>
   sh ./trt2023_qwen7-b/tensorrt_llm_july-release-v1/qwenb_chen/prepare.sh <br>
    - 步骤6:  导出lm_head的模型参数
