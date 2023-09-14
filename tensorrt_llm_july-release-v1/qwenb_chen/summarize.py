@@ -330,10 +330,10 @@ if __name__ == '__main__':
     )
     parser.add_argument('--tokenizer_dir',
                         type=str,
-                        default='/root/workspace/trt2023/QWen-7B-Chat',
+                        default='/root/workspace/QWen-7B-Chat',
                         help='Directory containing the tokenizer model.')
-    parser.add_argument('--test_hf',default=False,action='store_true',type=bool)
-    parser.add_argument('--test_trt_llm',default=False,action='store_true',type=bool)
+    parser.add_argument('--test_hf',default=False,action='store_true')
+    parser.add_argument('--test_trt_llm',default=False,action='store_true')
     parser.add_argument('--data_type',
                         type=str,
                         choices=['fp32', 'fp16'],
