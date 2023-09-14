@@ -221,8 +221,8 @@ def main(args):
         logger.info(f"\n Output : {output}")
         logger.info("---------------------------------------------------------")
 
-    metric_tensorrt_llm = [load_metric('/root/workspace/trt2023/rouge/rouge.py') for _ in range(num_beams)]
-    metric_hf = [load_metric('/root/workspace/trt2023/rouge/rouge.py') for _ in range(num_beams)]
+    metric_tensorrt_llm = [load_metric(args.rouge_path) for _ in range(num_beams)]
+    metric_hf = [load_metric(args.rouge_path) for _ in range(num_beams)]
     for i in range(num_beams):
         metric_tensorrt_llm[i].seed = 0
         metric_hf[i].seed = 0
@@ -338,7 +338,9 @@ if __name__ == '__main__':
                         type=str,
                         choices=['fp32', 'fp16'],
                         default='fp32')
-    parser.add_argument('--dataset_path', type=str, default='/root/workspace/trt2023/cnn_dailymail/cnn_dailymail.py')
+    parser.add_argument('--rouge_path', type=str, default='./datasets/cnn_dailymail.py')
+
+    parser.add_argument('--dataset_path', type=str, default='./datasets/cnn_dailymail.py')
     parser.add_argument('--log_level', type=str, default='info')
     parser.add_argument('--engine_dir', type=str, default='/root/workspace/tensorrt_llm_july-release-v1/qwen_trtModel')
     parser.add_argument('--batch_size', type=int, default=1)
