@@ -90,10 +90,14 @@ def main(args):
         dataset_revision = "3.0.0"
         dataset_input_key = 'article'
         dataset_output_key = 'highlights'
-
-    dataset = load_dataset(name=dataset_revision,
-                           revision=dataset_revision,
-                           path=args.dataset_path)
+    if args.use_download_cnn:
+        dataset = load_dataset(name=dataset_revision,
+                               revision=dataset_revision,
+                               path=args.dataset_path)
+    else:
+        import pickle
+        files=open('./datasets/dataset.pkl','rb')
+        dataset=pickle.load(files)
     #  split='test')
     # dataset = load_dataset(
     #                        dataset_name,
@@ -334,6 +338,8 @@ if __name__ == '__main__':
                         help='Directory containing the tokenizer model.')
     parser.add_argument('--test_hf',default=False,action='store_true')
     parser.add_argument('--test_trt_llm',default=False,action='store_true')
+    parser.add_argument('--use_download_cnn',default=False,action='store_true')
+
     parser.add_argument('--data_type',
                         type=str,
                         choices=['fp32', 'fp16'],
