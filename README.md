@@ -50,8 +50,8 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;c.用户网络只能访问百度：<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;大佬提供网盘链接：https://pan.baidu.com/s/14XxZ-JO5RfhGJEVs_BEiDA?pwd=8rw4#list/path=%2F<br>
    &nbsp;下载文件到Qwen-7B-Chat,注意！！！文件路径必须与b保持一致．<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    (2)summary　cnn_dailymail数据下载到服务器路径：/root/Qwen-7B-Chat/cnn_dailymail：<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   链接：https://pan.baidu.com/s/1yteFl5YPzhVg8maUd2jqfg?pwd=usyn 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;   (2)summary　cnn_dailymail数据下载到服务器路径：/root/cnn_dailymail：<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp;   链接：https://pan.baidu.com/s/1yteFl5YPzhVg8maUd2jqfg?pwd=usyn 
 提取码：usyn
    -  步骤5:运行前的准备工作,运行：<br>
   sh ./trt2023_qwen7-b/tensorrt_llm_july-release-v1/qwenb_chen/prepare.sh <br>
@@ -81,6 +81,7 @@
  ````   
    - 步骤10:  运行summarize.py文件，生成摘要评测指标:<br>
  ````
+     如果网络不好请按照步骤4,下载/root/cnn_dailymail服务器映射容器路径下
      cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
      python summarize.py --test_hf \
                          --engine_dir=/root/workspace/tensorrt_llm_july-release-v1/qwenb_chen/qwen_trtModel\
@@ -90,6 +91,16 @@
                          --engine_dir=/root/workspace/tensorrt_llm_july-release-v1/qwenb_chen/qwen_trtModel\
                          --hf_model_location=/root/workspace/QWen-7B-Chat/\
                          --rouge_path=./datasets/rouge.py
+　　　如果网络很好，能够链接huggingface,不需要下载cnn_dailymail数据
+     请运行：
+　　  python summarize.py --test_hf \
+                         --use_download_cnn\
+                         --engine_dir=/root/workspace/tensorrt_llm_july-release-v1/qwenb_chen/qwen_trtModel\
+                         --hf_model_location=/root/workspace/QWen-7B-Chat/\
+     python summarize.py --test_trt_llm\
+                         --use_download_cnn\
+                         --engine_dir=/root/workspace/tensorrt_llm_july-release-v1/qwenb_chen/qwen_trtModel\
+                         --hf_model_location=/root/workspace/QWen-7B-Chat/\
  ````
 ### 主要开发工作
 #### 开发工作的难点 
