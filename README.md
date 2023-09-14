@@ -29,8 +29,7 @@
   &nbsp; 用户名：chenmingwei53<br>
   &nbsp; 密码：chentian184616(比赛结束后，密码更改)<br> 
    - 步骤3:依赖安装<br>
-   　安装lfs:<br>
-　　　 curl -s https://packagecloud.io/instal:l/repositories/github/git-lfs/script.deb.sh | bash<br>
+　　curl -s https://packagecloud.io/instal:l/repositories/github/git-lfs/script.deb.sh | bash<br>
 &nbsp; &nbsp;&nbsp; 　apt-get install git-lfs<br>
  &nbsp; &nbsp; 　    pip install tiktoken -i https://pypi.tuna.tsinghua.edu.cn/simple<br>
   &nbsp; &nbsp; 　        pip install onnx_graphsurgeon -i https://pypi.tuna.tsinghua.edu.cn/simple
