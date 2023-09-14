@@ -34,10 +34,7 @@
   &nbsp; 密码：chentian184616(比赛结束后，密码更改)<br> 
    - 步骤3:依赖安装<br>
   ````
-  curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
-  apt-get install git-lfs
-  pip install tiktoken -i https://pypi.tuna.tsinghua.edu.cn/simple
-  pip install onnx_graphsurgeon -i https://pypi.tuna.tsinghua.edu.cn/simple
+  sh ./trt2023_qwen7-b/tensorrt_llm_july-release-v1/qwenb_chen/install_package.sh 
   ```` 
    - 步骤4:依赖模型下载<br>
    　模型下载到容器路径：/root/workspace/<br>
