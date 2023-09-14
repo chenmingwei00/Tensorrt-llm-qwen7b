@@ -58,7 +58,7 @@
    - 步骤6:  导出lm_head的模型参数
  ````
     cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
-    python exportLM.py<br>
+    python exportLM.py
  ````
    - 步骤7:  torch模型文件转化为FT模型文件<br>
  ````
