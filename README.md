@@ -5,6 +5,8 @@
 - 模型链接：https://github.com/QwenLM/Qwen-7B/blob/main/cli_demo.py#L39
 - 模型介绍：<br>
 通义千问-7B（Qwen-7B） 是阿里云研发的通义千问大模型系列的70亿参数规模的模型。Qwen-7B是基于Transformer的大语言模型, 在超大规模的预训练数据上进行训练得到。预训练数据类型多样，覆盖广泛，包括大量网络文本、专业书籍、代码等。同时，在Qwen-7B的基础上，我们使用对齐机制打造了基于大语言模型的AI助手Qwen-7B-Chat。
+ 开发过程关键信息记录在：<br>
+ tensorrt_llm_july-release-v1/qwenb_chen/notebook
 - 优化效果：<br>
   经过生成引擎后，与原始模型针对输入：续写：RTX4090具有760亿个晶体管，16384个CUDA核心，做推理速度对比;
   以5次推理平均每个生成字符时间为基准，进行对比，效果如下：<br>
@@ -23,16 +25,20 @@
 
 - Docker环境代码编译、运行步骤说明：<br>
   - 步骤1:容器启动：<br>
-  &nbsp; nvidia-docker run -it --name trt_2023 registry.cn-hangzhou.aliyuncs.com/trt-hackathon/trt-hackathon:final_v1 /bin/bash<br>
+  ````
+  nvidia-docker run -it --name trt_2023 registry.cn-hangzhou.aliyuncs.com/trt-hackathon/trt-hackathon:final_v1 /bin/bash<br>
+   ````
   - 步骤2: clone 本人的项目到容器路径/root/workspace下<br>
   &nbsp; git clone https://gitee.com/chenmingwei53/trt2023_qwen7-b.git<br>
   &nbsp; 用户名：chenmingwei53<br>
   &nbsp; 密码：chentian184616(比赛结束后，密码更改)<br> 
    - 步骤3:依赖安装<br>
-　　curl -s https://packagecloud.io/instal:l/repositories/github/git-lfs/script.deb.sh | bash<br>
-&nbsp; &nbsp;&nbsp; 　apt-get install git-lfs<br>
- &nbsp; &nbsp; 　    pip install tiktoken -i https://pypi.tuna.tsinghua.edu.cn/simple<br>
-  &nbsp; &nbsp; 　        pip install onnx_graphsurgeon -i https://pypi.tuna.tsinghua.edu.cn/simple
+  ````
+  curl -s https://packagecloud.io/instal:l/repositories/github/git-lfs/script.deb.sh | bash
+  apt-get install git-lfs
+  pip install tiktoken -i https://pypi.tuna.tsinghua.edu.cn/simple
+  pip install onnx_graphsurgeon -i https://pypi.tuna.tsinghua.edu.cn/simple
+  ```` 
    - 步骤4:依赖模型下载<br>
    　模型下载到容器路径：/root/workspace/<br>
    　链接:https://huggingface.co/Qwen/Qwen-7B-Chat<br>
