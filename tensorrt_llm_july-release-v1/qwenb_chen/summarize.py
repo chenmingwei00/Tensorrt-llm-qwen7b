@@ -91,9 +91,9 @@ def main(args):
         dataset_input_key = 'article'
         dataset_output_key = 'highlights'
     if args.use_download_cnn:
-        dataset = load_dataset(name=dataset_revision,
-                               revision=dataset_revision,
-                               path=args.dataset_path)
+        dataset = load_dataset(dataset_name,
+                               dataset_revision,
+                               cache_dir=args.dataset_path)
     else:
         import pickle
         cahe_data_path='/root/.cache/huggingface/datasets/cnn_dailymail/3.0.0/3.0.0/0107f7388b5c6fae455a5661bcd134fc22da53ea75852027040d8d1e997f101f/'
@@ -228,9 +228,12 @@ def main(args):
         logger.info(f"\n Reference : {datapoint[dataset_output_key]}")
         logger.info(f"\n Output : {output}")
         logger.info("---------------------------------------------------------")
-
-    metric_tensorrt_llm = [load_metric(args.rouge_path) for _ in range(num_beams)]
-    metric_hf = [load_metric(args.rouge_path) for _ in range(num_beams)]
+    if args.use_download_cnn:
+        metric_tensorrt_llm = [load_metric("rouge") for _ in range(num_beams)]
+        metric_hf = [load_metric("rouge") for _ in range(num_beams)]
+    else:
+        metric_tensorrt_llm = [load_metric(args.rouge_path) for _ in range(num_beams)]
+        metric_hf = [load_metric(args.rouge_path) for _ in range(num_beams)]
     for i in range(num_beams):
         metric_tensorrt_llm[i].seed = 0
         metric_hf[i].seed = 0
@@ -350,7 +353,7 @@ if __name__ == '__main__':
                         default='fp32')
     parser.add_argument('--rouge_path', type=str, default='./datasets/cnn_dailymail.py')
 
-    parser.add_argument('--dataset_path', type=str, default='./datasets/cnn_dailymail.py')
+    parser.add_argument('--dataset_path', type=str, default='')
     parser.add_argument('--log_level', type=str, default='info')
     parser.add_argument('--engine_dir', type=str, default='/root/workspace/tensorrt_llm_july-release-v1/qwenb_chen/qwen_trtModel')
     parser.add_argument('--batch_size', type=int, default=1)
