@@ -220,34 +220,36 @@
   
 本次实现的是qwen7b在普通模式情况下attention的TensorRT-LLM在精度float16的加速推理<br>
 #### 1.选择合适的官方大模型熟悉了解TensorRT-LLM优化模型过程
- &nbsp;&nbsp;&nbsp;&nbsp;拿到任务后，首先就是要了解TensorRT-LLM优化大模型的一般过程是什么，由于大部分大模型都是transformer架构，并且存在
+ &nbsp;&nbsp;&nbsp;&nbsp;拿到任务后，首先就是要了解TensorRT-LLM优化大模型推理的一般过程是什么，由于大部分大模型都是transformer架构，并且存在
 非常多的重复算法（学习nlp基本都了解国内翻炒的习惯），并且官方给了llama以及chat-glm6b的实现，选择任意一个去学习利用
-TensorRT-LLM优化的一般过程.
+TensorRT-LLM优化的一般过程.<br>
  &nbsp;&nbsp;&nbsp;&nbsp;通过学习chatglm后，实现优化主要：<br>
    - a.原始模型参数hf_chatglm6b_convert.py文件转化为FT模型文件．
- 说的通俗点就是转化为array类型矩阵，具体为什么，稍后讲解，先说大概流程;<br>
-   - b.上一步骤产生的 array类型矩阵主要在这一步build模型来初始化 tensorrt_llm.models.ChatGLM6BHeadModel（）
-   　模型的；为此我们知道我们需要实现类似ChatGLM6BHeadModel模型，那么这个是使用TensorRT-LLM的核心，说实话初步使用感觉
+ 说的通俗点就是转化为array类型矩阵，具体为什么，主要原因就是TensorRT-LLM构建模型初始化参数是np类型数据，通过观测发现;<br>
+   - b.上一步骤产生的 array类型矩阵主要在这一步build模型来初始化 tensorrt_llm.models.ChatGLM6BHeadModel()
+   　模型的；为此我们知道我们需要实现类似ChatGLM6BHeadModel模型，那么这个是使用TensorRT-LLM的构建的模型,也是推理模型的核心,说实话初步使用感觉
    有点像静态图．我们点进去发现实现ChatGLM6BHeadModel类的文件在tensorrt_llm/models/chatglm6b/model.py
-   因此实现新的模型需要实现这个核心文件;阅读build.py 文件发现3个关键处，模型初始化，加载模型参数，模型静态图推理．
-   利用这三个基本上就能搞定新模型的优化实现．
-   -c.作为一个开发人员一定会优先想要了解如何debug,没有debug就很大程度影响开发进度，虽然步骤b静态图可以对逻辑进行修改，
-   　有时候具体数值是检验代码是否有bug的关键，通过寻找发现docs/2023-05-19-how-to-debug.md给了gpt的debug方法;
-     具体位置在2023-05-19-how-to-debug.md的67行之后．然后结合run.py基本上就了解了整个开发新模型的一般过程．run.py通过阅读
-     当然一定要有bert系类生成模型的基础才好阅读，其本质就是解码过程核心在tensorrt_llm/runtime/generation.py
+   因此实现新的模型需要实现这个核心文件;阅读build.py 文件发现3个关键处:<br>
+      模型初始化，加载模型参数，模型静态图推理．
+   利用这三个基本上就能搞定新模型的优化实现．<br>
+  - c.作为一个开发人员一定会优先想要了解如何debug,没有debug就很大程度影响开发进度，虽然步骤b静态图可以对模型逻辑进行修改,有时候具体输出数值是检验代码是否有bug的关键，通过寻找发现docs/2023-05-19-how-to-debug.md给了gpt的debug方法;
+     具体位置在2023-05-19-how-to-debug.md的67行之后．然后结合run.py基本上就了解了整个开发新模型的一般过程．通过阅读run.py
+     当然一定要有bert系类生成模型的基础才好阅读，其本质就是解码过程核心在tensorrt_llm/runtime/generation.py<br>
+       ```` 
        self.dynamic_decoder = torch.classes.FasterTransformer.DynamicDecodeOp(
             self.vocab_size, self.vocab_size_padded, self.mapping.tp_size,
             pp_size, torch.float32)
-       由代码可知具体解码调用的torch，generation主要作用是对数据进行准备，类似ｔｒｔ模型推理的那个过程（）：
-       　➢ 创建 Context
-        ➢ Buffer 准备（Host 端 + Device 端）
-        ➢ Buffer 拷贝 Host to Device
-        ➢ 执行推理（Execute）
-        ➢ Buffer 拷贝 Device to Host
+     ````
+       由代码可知具体解码调用的torch，generation主要作用是对数据进行准备,数据处理,类似trt模型推理的过程：<br>
+        ➢ 创建 Context<br>
+        ➢ Buffer 准备（Host 端 + Device 端）<br>
+        ➢ Buffer 拷贝 Host to Device<br>
+        ➢ 执行推理（Execute）<br>
+        ➢ Buffer 拷贝 Device to Host<br>
 ####２.初步构建qwen7b模型
 &nbsp;&nbsp;&nbsp;&nbsp;有了步骤１的学习和分析，可知模型结构基本相似，<br>
-➢ a.初步新模型构建
-　首先在tensorrt_llm/models/文件夹中创建qwen7B文件库以及__init__.py，model.py文件，优先使用chatglm6b下的文件复制过来,
+➢ a.初步新模型构建<br>
+　  首先在tensorrt_llm/models/文件夹中创建qwen7B文件库以及__init__.py，model.py文件，优先使用chatglm6b下的文件复制过来,
   并且下载qwen_7b_chat模型文件．对比modeling_qwen.py修改对应model.py的类名，函数名，变量名．这样初步模型构建完成．
   其次在tensorrt_llm/models/的__init__.py文件添加我们实现的模型文件，具体如下：
   ````
@@ -258,9 +260,9 @@ __all__ = [
     'Qwen7BModel'
 ]
    ```` 
-为了调试方便，把tensorrt_llm所有文件放在自己项目qwenb_chen路径下  
- ➢ b.利用类似静态图模型，同时debug原始模型，进一步对比初始化和推理的区别进行修改;
-    由于vscode没怎么用过，不能在transformers安装包内打断点．因此可以把qwen_7b_chat模型文件复制到qwenb_chen路径下：
+为了调试方便，把tensorrt_llm所有文件以及qwen_7b_chat除模型参数外所有文件放在自己项目qwenb_chen路径下．  
+ ➢ b.利用类似静态图模型，同时debug原始模型，进一步对比初始化和推理的区别进行修改<br>
+&nbsp;&nbsp;&nbsp;由于vscode没怎么用过，不能在transformers安装包内打断点．因此可以把qwen_7b_chat模型文件复制到qwenb_chen路径下：
     QWenLMHeadModel继承QWenPreTrainedModel，存在from_pretrained函数，qwen_7b_chat存在configuration_qwen.py文件
     因此exportLM.py文件代码可以更改为本地导入：
    ````
@@ -278,43 +280,42 @@ __all__ = [
             checkpoint_path, trust_remote_code=True, resume_download=True,
         )
    ````
- 　　复制examples/chatglm6b/build.py到qwenb_chen，修改里边的部分设置，由于大部分设置是相同的，怎么修改设置呢，当然是通过
- 　　 我系的build.py和chatglm-6b略微不同，原因是本来想仿照2023-05-19-how-to-debug.md第一个例子去写，后来发现build.py即可完成
- 　　自己想要的操作．但所有具体内容还是build.py内容．
-     静态图debug,查看原始模型与chat-glm6b之间的区别,由于build.py 文件需要"config.ini"文件，这个文件是hf_qwen7b_convert.py
- 　　生成的，因此通过debug方式运行hf_qwen7b_convert.py到80行，即可生成该文件．
- 　　由于是for 循环32层，因此我们全部设置１层，即可在２４ｇ显存同时运行两个．在debug时，注释load_from_ft函数即可，
- 　　修改n_layer=1 ,原始模型modeling_qwen.py：
-        for i, (block, layer_past) in enumerate(zip(self.h, past_key_values)):
+ 　　复制examples/chatglm6b/build.py到qwenb_chen，修改里边的部分设置，由于大部分设置是相同的，怎么修改设置呢，当然是通过debug build.py,写的build.py与chatglm-6b略微不同
+     静态图debug,查看原始模型与chat-glm6b之间的区别,由于build.py 文件需要"config.ini"文件，这个文件是hf_qwen7b_convert.py生成的，因此通过debug方式运行hf_qwen7b_convert.py到80行，即可生成该文件．由于是for循环32层，因此我们全部设置１层，即可在24ｇ显存同时运行原始模型以及build.py.
+     在debug时，注释load_from_ft函数即可，修改n_layer=1 ,原始模型modeling_qwen.py：<br>
+    
+    
+     for i, (block, layer_past) in enumerate(zip(self.h, past_key_values)):
             if output_hidden_states:
                 all_hidden_states = all_hidden_states + (hidden_states,)
             break #添加break即可实现一层，
-    trtllm 模型需要修改：
+     trtllm 模型需要修改：
        build.py
        a.tensorrt_llm_Qwen7BModel = tensorrt_llm.models.Qwen7BHeadModel(
                                                                 num_layers=1, #args.n_layer,
- ➢ c.原始模型参数转化为ＦＴ模式
+     以上步骤主要修改模型变量是否对应，主题逻辑是否与原模型保持一致.
+ ➢ c.原始模型参数转化为ＦＴ模式<br>
  　　通过modeling_qwen.py 与chatglm-6b对比　lm_logits = self.lm_head(hidden_states)，完全一致，因此按照
  　　chatglm-6b导出lm.npy参数．复制examples/chatglm6b/hf_qwen7b_convert.py到qwenb_chen,
     由于我们基本上使用单gpu,原始的hf_qwen7b_convert.py转化应该考虑到多gpu情况，我们默认使用单gpu进行保存文件即可
     ,因此我们惟一的关注点是要把原始模型参数通过modeling_qwen都保存，而不遗漏，因此保存时，最好罗列出来modeling_qwen
-    所有参数名称，layer内的参数只需要１层即可，按照这种方式实际参数名称并不多，而且qwen7b基本上没有使用bias.
-     wte.weight
+    所有参数名称，layer内的参数名只需要１层即可，按照这种方式实际参数名称并不多，而且qwen7b基本上没有使用bias,主要参数名如下：<br>
+  ````     
+　　　wte.weight
      ln_1.wegiht
      c_attn.wetght
      c_attn.bias 
-      c_proj.weight
-      mlp.w1.weight
-      mlp.w2.weight
-      mlp.c_proj.weight
-      ln_2.weight
-      ln_f.weight
-    注意排除
-    直到所有模型参数保存完成．这一点非常重要！！！！！
-    
-    唯一没有说的是旋转矩阵的保存，因为这个我刚开始已经介绍，具体看上面难点介绍，由于我们没有使用flah attention 因此
-    原始模型旋转矩阵走的是
-    def apply_rotary_pos_emb(t, freqs):
+     c_proj.weight
+     mlp.w1.weight
+     mlp.w2.weight
+     mlp.c_proj.weight
+     ln_2.weight
+     ln_f.weight
+   ````
+   利用与原模型同时调试，逐个排除，直到所有模型参数保存完成．这一点非常重要！！！！！<br>
+&nbsp;&nbsp;&nbsp;  唯一没有说的是旋转矩阵的保存，因为这个我刚开始已经介绍，具体看上面难点介绍，我们没有使用flah attention 因此原始模型旋转矩阵走的是
+   ```` 
+   def apply_rotary_pos_emb(t, freqs):
         if apply_rotary_emb_func is not None and t.is_cuda:
             t_ = t.float()
             freqs = freqs.squeeze(0).squeeze(1)
@@ -329,71 +330,79 @@ __all__ = [
             t_pass_ = t_pass_.float()
             t_ = (t_ * freqs.cos()) + (_rotate_half(t_) * freqs.sin())
             return torch.cat((t_, t_pass_), dim=-1).type_as(t)
-    else下边的代码，通过debug 可知freqs　的shape =[,,128] ,并且初始化获取的postion_ids的embdedding也不同，详细代码请看上边介绍
- ➢ d.细致微调，利用原始模型输出与trtllm生成结果法对比进行修改模型，按照how to debug 文件修改即可budeg
-   为了方便调试我们首先设置layer=1，减少build时间 
+  ```` 
+ 我们设置，使得原始模型运行else下边的代码，通过debug可知freqs的shape =[,,128] ,并且初始化获取的postion_ids的embdedding也不同，详细代码请看上边介绍．<br>
+
+ ➢ d.细致微调，利用原始模型输出与trtllm每层输出结果对比进行修改模型bug逻辑修复，按照2023-05-19-how-to-debug.md文件修改即可budeg.<br>
+&nbsp;&nbsp;&nbsp; 为了方便调试我们首先设置layer=1，减少build时间<br> 
+  ````
     build.py
        a.tensorrt_llm_Qwen7BModel = tensorrt_llm.models.Qwen7BHeadModel(
                                                                 num_layers=1, #args.n_layer,
        b. load_from_ft  --> 195 line n_layer=1
     run.py 
         a.  num_layers =1# config['builder_config']['num_layers']
-    
-    经过分析，和经验之谈，最核心的只有两点，其余进行debug输出基本上和原始模型误差不大
-    旋转矩阵对齐是关键
-    　　按照qwen7b原始生成保存sin,cos的8192,128的向量矩阵
-    　　按照qwen7b原始模型query,key使用相同的sin,cos数值，构建postions_ids 
-         position_ids = torch.zeros([batch_size, 2, max_input_length],
+   ````
+&nbsp;&nbsp;&nbsp; 经过分析,最核心的只有两点，其余进行debug输出基本上和原始模型误差不大<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 旋转矩阵对齐是关键:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     　按照qwen7b原始生成保存sin,cos的shape=[8192,128]的向量矩阵<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     　按照qwen7b原始模型query,key使用相同的sin,cos数值，构建postions_ids<br>
+  
+           position_ids = torch.zeros([batch_size, 2, max_input_length],
                                        dtype=torch.int32)
-        position_ids[:, 0, :] = torch.arange(max_input_length)
-        position_ids[:, 1, :] = torch.arange(max_input_length)
+           position_ids[:, 0, :] = torch.arange(max_input_length)
+           position_ids[:, 1, :] = torch.arange(max_input_length)
         
-        　按照qwen7b原始模型apply_rotary_pos_emb函数运行else修改
-         def rotate_embedding(x, position_embedding_value,position_embedding_value_sin): # the same to qwen7B ApplyRotaryEmb
-            t_ = (x * position_embedding_value) + (rotate(x) *position_embedding_value_sin)
-            return t_
-　　　　 计算结合位置信息query,key信息表示．
-　　gpt_attention 超参设置是关键
-　  由于刚开始没怎么设置，就会出现和原始模型输出差距较大问题，核心是仔细阅读官方gpt_attention参数含义，我给处debug
-    glm6b与我复现qwen7b差别
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     　按照qwen7b原始模型apply_rotary_pos_emb函数运行else修改query,key结合位置信息的函数．<br>
+         
+           def rotate_embedding(x, position_embedding_value,position_embedding_value_sin): # the same to qwen7B ApplyRotaryEmb
+               t_ = (x * position_embedding_value) + (rotate(x) *position_embedding_value_sin)
+               return t_
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     　以上函数计算了结合位置信息query,key信息表示．<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; gpt_attention超参设置是关键:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     　由于刚开始没怎么设置,就会出现和原始模型输出误差较大问题,核心是仔细阅读官方gpt_attention参数含义,下面展示debug
+    glm6b与我复现qwen7b参数以及输出差别：
     
-    sequence_length  tensor([24], device='cuda:0', dtype=torch.int32)  45
-    past_key_value_length tensor([0, 1], dtype=torch.int32)        [0,1]
-    masked_tokens all is 0  shape 1,1048    1,1,1069
-    input_lengths 24                        45
-    max_input_length 24                     45
-    cache_indirection 1,1,1048  all is 0    1069
-    past_key_value_0 1 2 32 1048 128        1 2 32 1069 128 
-    hight pargram:
-    self.num_attention_heads 32
-    self.attention_head_size 128 
-    self.q_scaling            1
-    self.rotary_embedding_dim 0            not same  qwen7b 128
-    self.neox_rotary_style   True
-    self.multi_block_mode    False
-    self.multi_query_mode,   False
-    kv_orig_quant_scale      None
-    kv_quant_orig_scale      None
-    self.use_int8_kv_cache,  False
-    mask_type=               2                 2
-    通过对比发现， self.rotary_embedding_dim在glm6b设置为0,目的是gpt_attention函数包含旋转矩阵计算，由于我们计算过依次，
-    因此设置为0,gpt_attention就不会再计算旋转矩阵计算．mask_type参数glm6b使用的是２，我们阅读gpt_attention参数说明：
-     mask_type: int = 1
-            The type of mask:
-                * tensorrt_llm.layers.AttentionMaskType.padding for BERT,
-                * tensorrt_llm.layers.AttentionMaskType.causal for GPT,
-                * tensorrt_llm.layers.AttentionMaskType.bidirectional for ChatGLM,
-　　　而qwen7b使用的是causal　mask策略，因此改为１即可
-　　　通过以上核心修改，基本上对比输出差距正常．
-➢ e.run.py 数据准备修改
-　　通过以上对比基本上算是大工完成一多半了,但是run.py运行时输出[input_ids,..1023,1023,..],但是debug显示lm_logits
-　　与原模型相同，最终发现，
- 　　lm_logits.mark_output('logits', self._dtype)
+           sequence_length  24 　　　45
+           past_key_value_length [0, 1]        [0,1]
+           masked_tokens all is 0  1,1,1048        1,1,1069
+           input_lengths 24         45
+           max_input_length 24        45
+           cache_indirection 1,1,1048      1,1,1069   all is 0
+           past_key_value_0 1 2 32 1048 128        1 2 32 1069 128 
+    
+           hight pargram:
+           self.num_attention_heads 32        32
+           self.attention_head_size 128        128
+           self.q_scaling            1        1
+           self.rotary_embedding_dim 0        128    not same  qwen7b 
+           self.neox_rotary_style   True
+           self.multi_block_mode    False
+           self.multi_query_mode,   False
+           kv_orig_quant_scale      None
+           kv_quant_orig_scale      None
+           self.use_int8_kv_cache,  False
+           mask_type=               2        2
+&nbsp;&nbsp;&nbsp;通过对比发现,self.rotary_embedding_dim在glm6b设置为0,目的是gpt_attention函数默认包含旋转矩阵计算,由于我们计算过旋转矩阵,
+    因此设置为0,gpt_attention就不会再旋转矩阵计算.mask_type参数glm6b使用的是2,我们阅读gpt_attention参数说明：<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mask_type: int = 1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The type of mask:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                * tensorrt_llm.layers.AttentionMaskType.padding for BERT,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                * tensorrt_llm.layers.AttentionMaskType.causal for GPT,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                * tensorrt_llm.layers.AttentionMaskType.bidirectional for ChatGLM,<br>
+&nbsp;&nbsp;&nbsp;而qwen7b使用的是causal　mask策略,因此改为1即可.<br>
+　　　通过以上核心修改，基本上对比输出差距正常．<br>
+➢ e.run.py数据准备,数据处理修改<br>
+　　通过以上对比基本上算是大工完成一多半了,但是run.py运行时输出[input_ids,..1023,1023,..],而debug显示lm_logits与原模型相同,仔细对比发现:<br>
+  ```` 　 
+    lm_logits.mark_output('logits', self._dtype)
     self.register_network_output('lm_logits', lm_logits)
-    不能同时标记，这样就会导致，运行时没有logits变量，咋说呢，唉，一堆莫名的误解，注释lm_logits即可
+  ````
+　　同一个变量不能标记多次,这样就会导致运行时没有logits变量,咋说呢,唉,一堆莫名的误解,注释lm_logits即可.
     此时输出发生变化输出[input_ids,..220,1023,..1023]
-    由于仿照ｇｌｍ６ｂ这样写，会默认认为hidden_states输出应该是[batch_size,seqlen,hidden_size]
-      last_token_ids = last_token_ids.view(
+    由于仿照chatglm-6b这样写,开发者会默认认为hidden_states输出应该是[batch_size,seqlen,hidden_size]　      　
+   ```` 　 
+        last_token_ids = last_token_ids.view(
             concat([shape(last_token_ids, 0), 1, 1]))
         last_token_ids = expand(
             last_token_ids,
@@ -404,11 +413,11 @@ __all__ = [
             hidden_states, dim=1, indices=last_token_ids).view(
                 concat([shape(hidden_states, 0),
                         shape(hidden_states, 2)]))
-    因此我把last_token_ids每次循环从45递增１，而hidden_states实际除第１次为４５，此后为[batch_size,１,hidden_size]
-　　这也就解释了last_token_ids = torch.ones_like(input_lengths)，一直为１的原因
-　　具体修改tensorrt_llm/runtime/generation.py-->ChatGLM6BHeadModelGenerationSession-->
-  _prepare_generation_inputs函数
-  　具体如下：
+  ````
+　　因此我把last_token_ids每次循环从45递增1,而hidden_states实际除第1次为45,此后为[batch_size,１,hidden_size].这也就解释了last_token_ids = torch.ones_like(input_lengths)一直为1的原因.修改tensorrt_llm/runtime/generation.py-->ChatGLM6BHeadModelGenerationSession-->
+  _prepare_generation_inputs函数.<br>
+  具体如下：<br>
+   ```` 
   def _prepare_generation_inputs(self, batch_size, input_lengths,
                                    use_gpt_attention_plugin,
                                    remove_input_padding, **kwargs):
@@ -433,7 +442,8 @@ __all__ = [
             'position_ids': position_ids,
             'last_token_ids': last_token_ids
         }
-　　其实就只有position_ids每次循环递增１．至此，基本构建模型完成．
+   ```` 
+　其实就只有position_ids每次循环递增1,至此,基本构建模型完成.
 
 ### 优化效果
 
@@ -444,6 +454,7 @@ __all__ = [
 | Qwen-7B(原始模型HF)| 74.0851 | 25.8615|8.8051|18.0820|22.1695|
 | Qwen-7B(TensorRT-LLM)  | 46.6413 | 27.9374 |8.6715|19.3419|23.4794|
 
+通过对比分析可知,进行优化后大幅度提高了模型推理的速度,并且rouge分数基本没有损失,以上操作均在float16精度下进行的.
 ### 送分题答案（可选）
 - 任务１<br>
 　/root/workspace/tensorrt_llm_july-release-v1/examples/gpt/README 里面 “Single node, single GPU” 部分如下命令的输出（10分）
