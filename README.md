@@ -79,8 +79,14 @@
    - 步骤10:  运行summarize.py文件，生成摘要评测指标:<br>
  ````
      cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
-     python summarize.py --test_hf
-     python summarize.py --test_trt_llm
+     python summarize.py --test_hf \
+                         --engine_dir=/root/workspace/tensorrt_llm_july-release-v1/qwenb_chen/qwen_trtModel\
+                         --hf_model_location=/root/workspace/QWen-7B-Chat/\
+                         --rouge_path=./datasets/rouge.py
+     python summarize.py --test_trt_llm\
+                         --engine_dir=/root/workspace/tensorrt_llm_july-release-v1/qwenb_chen/qwen_trtModel\
+                         --hf_model_location=/root/workspace/QWen-7B-Chat/\
+                         --rouge_path=./datasets/rouge.py
  ````
 ### 主要开发工作
 #### 开发工作的难点 
@@ -520,7 +526,10 @@ CPU:<br>
             >>> from datasets import load_dataset<br>
             >>> ds = load_dataset('path/to/local/loading_script/loading_script.py', split='train')<br>
             ```<br>
-         因此把加载数据更改为以下形式即可：当然你需要能够特殊网络下载下来相关文件cnn_dailymail.py<br>
+         因此把加载数据更改为以下形式即可：
+          当然你需要能够特殊网络下载下来相关文件cnn_dailymail.py<br>
+          cnn_stories.tgz
+          dailymail_stories.tgz
          下载链接：https://huggingface.co/datasets/ccdv/cnn_dailymail<br>
          dataset = load_dataset(name=dataset_revision,<br>
                   revision=dataset_revision,<br>
