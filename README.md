@@ -34,7 +34,7 @@
   &nbsp; 密码：chentian184616(比赛结束后，密码更改)<br> 
    - 步骤3:依赖安装<br>
   ````
-  curl -s https://packagecloud.io/instal:l/repositories/github/git-lfs/script.deb.sh | bash
+  curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
   apt-get install git-lfs
   pip install tiktoken -i https://pypi.tuna.tsinghua.edu.cn/simple
   pip install onnx_graphsurgeon -i https://pypi.tuna.tsinghua.edu.cn/simple
