@@ -26,7 +26,7 @@
 - Docker环境代码编译、运行步骤说明：<br>
   - 步骤1:容器启动：<br>
   ````
-  nvidia-docker run -it --name trt_2023 registry.cn-hangzhou.aliyuncs.com/trt-hackathon/trt-hackathon:final_v1  -v /root:/root/workspace/trt2023 /bin/bash
+  nvidia-docker run -it --name trt_2023 -v /root:/root/workspace/trt2023 registry.cn-hangzhou.aliyuncs.com/trt-hackathon/trt-hackathon:final_v1 /bin/bash
    ````
   - 步骤2: clone 本人的项目到容器路径/root/workspace下<br>
   &nbsp; git clone https://gitee.com/chenmingwei53/trt2023_qwen7-b.git<br>
