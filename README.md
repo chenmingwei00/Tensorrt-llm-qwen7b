@@ -80,8 +80,8 @@
                   --tokenizer_dir=/root/workspace/trt2023/QWen-7B-Chat
  ````   
    - 步骤10:  运行summarize.py文件，生成摘要评测指标:<br>
- ````
      如果网络不好请按照步骤4,下载/root/cnn_dailymail服务器映射容器路径下
+ ````
      cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
      python summarize.py --test_hf \
                          --engine_dir=./qwen_trtModel\
@@ -91,8 +91,10 @@
                          --engine_dir=./qwen_trtModel\
                          --hf_model_location=/root/workspace/trt2023/QWen-7B-Chat/\
                          --rouge_path=./datasets/rouge.py
+ ````
 　　　如果网络很好，能够链接huggingface,不需要下载cnn_dailymail数据
      请运行：
+ ````
 　　  python summarize.py --test_hf \
                          --use_download_cnn\
                          --engine_dir=./qwen_trtModel\
