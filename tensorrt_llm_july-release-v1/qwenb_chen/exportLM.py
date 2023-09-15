@@ -2,8 +2,18 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from qwen_7b_chat.modeling_qwen import QWenLMHeadModel
 from transformers.generation import GenerationConfig
 from qwen_7b_chat.configuration_qwen import QWenConfig
-import os
-checkpoint_path="/root/workspace/trt2023/QWen-7B-Chat"
+import argparse
+# checkpoint_path="/root/workspace/trt2023/QWen-7B-Chat"
+
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument('--checkpoint_path',
+                    type=str,
+                    default='./qwenftModel',
+                    help='file name of output directory',
+                    required=False)
+args = parser.parse_args()
+checkpoint_path=args.checkpoint_path
 tokenizer = AutoTokenizer.from_pretrained(checkpoint_path, trust_remote_code=True)
 # model = AutoModelForCausalLM.from_pretrained(checkpoint_path, device_map="auto", trust_remote_code=True).eval()
 model = QWenLMHeadModel.from_pretrained(checkpoint_path, device_map="auto", trust_remote_code=True, fp16=True).eval()
