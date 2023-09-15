@@ -63,7 +63,7 @@
    - 步骤7:  torch模型文件转化为FT模型文件<br>
  ````
     cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
-    python hf_qwen7b_convert.py
+    python hf_qwen7b_convert.py --in-file=/root/workspace/trt2023/QWen-7B-Chat
  ````
    - 步骤8:  运行build.py文件，生成qwen7b推理引擎文件,默认构建float 16,使用gpt-attention<br>
  ````
