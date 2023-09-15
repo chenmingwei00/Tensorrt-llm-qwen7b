@@ -85,10 +85,12 @@
      cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
      python summarize.py --test_hf \
                          --engine_dir=./qwen_trtModel\
+                         --tokenizer_dir=/root/workspace/trt2023/QWen-7B-Chat\
                          --hf_model_location=/root/workspace/trt2023/QWen-7B-Chat/\
                          --rouge_path=./datasets/rouge.py
      python summarize.py --test_trt_llm\
                          --engine_dir=./qwen_trtModel\
+                         --tokenizer_dir=/root/workspace/trt2023/QWen-7B-Chat\
                          --hf_model_location=/root/workspace/trt2023/QWen-7B-Chat/\
                          --rouge_path=./datasets/rouge.py
  ````
@@ -98,10 +100,12 @@
 　　  python summarize.py --test_hf \
                          --use_download_cnn\
                          --engine_dir=./qwen_trtModel\
+                         --tokenizer_dir=/root/workspace/trt2023/QWen-7B-Chat\
                          --hf_model_location=/root/workspace/trt2023/QWen-7B-Chat/\
      python summarize.py --test_trt_llm\
                          --use_download_cnn\
                          --engine_dir=./qwen_trtModel\
+                         --tokenizer_dir=/root/workspace/trt2023/QWen-7B-Chat\
                          --hf_model_location=/root/workspace/trt2023/QWen-7B-Chat/\
  ````
 ### 主要开发工作
