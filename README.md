@@ -36,7 +36,7 @@
   ````
   sh ./trt2023_qwen7-b/tensorrt_llm_july-release-v1/qwenb_chen/install_package.sh 
   ```` 
-   - 步骤4:依赖模型下载<br>
+   - 步骤4:依赖模型下载(可以服务/root路径下或者在容器内/root/workspace/trt2023路径下下载)<br>
    　(1) Qwen-7B-Chat模型下载到服务器路径：/root/Qwen-7B-Chat/<br>
    　  &nbsp;&nbsp;  链接:https://huggingface.co/Qwen/Qwen-7B-Chat<br>
        &nbsp;   &nbsp;   &nbsp; a.网络通顺的情况下：<br>
