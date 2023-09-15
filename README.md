@@ -84,23 +84,23 @@
      如果网络不好请按照步骤4,下载/root/cnn_dailymail服务器映射容器路径下
      cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
      python summarize.py --test_hf \
-                         --engine_dir=/root/workspace/tensorrt_llm_july-release-v1/qwenb_chen/qwen_trtModel\
-                         --hf_model_location=/root/workspace/QWen-7B-Chat/\
+                         --engine_dir=./qwen_trtModel\
+                         --hf_model_location=/root/workspace/trt2023/QWen-7B-Chat/\
                          --rouge_path=./datasets/rouge.py
      python summarize.py --test_trt_llm\
-                         --engine_dir=/root/workspace/tensorrt_llm_july-release-v1/qwenb_chen/qwen_trtModel\
-                         --hf_model_location=/root/workspace/QWen-7B-Chat/\
+                         --engine_dir=./qwen_trtModel\
+                         --hf_model_location=/root/workspace/trt2023/QWen-7B-Chat/\
                          --rouge_path=./datasets/rouge.py
 　　　如果网络很好，能够链接huggingface,不需要下载cnn_dailymail数据
      请运行：
 　　  python summarize.py --test_hf \
                          --use_download_cnn\
-                         --engine_dir=/root/workspace/tensorrt_llm_july-release-v1/qwenb_chen/qwen_trtModel\
-                         --hf_model_location=/root/workspace/QWen-7B-Chat/\
+                         --engine_dir=./qwen_trtModel\
+                         --hf_model_location=/root/workspace/trt2023/QWen-7B-Chat/\
      python summarize.py --test_trt_llm\
                          --use_download_cnn\
-                         --engine_dir=/root/workspace/tensorrt_llm_july-release-v1/qwenb_chen/qwen_trtModel\
-                         --hf_model_location=/root/workspace/QWen-7B-Chat/\
+                         --engine_dir=./qwen_trtModel\
+                         --hf_model_location=/root/workspace/trt2023/QWen-7B-Chat/\
  ````
 ### 主要开发工作
 #### 开发工作的难点 
