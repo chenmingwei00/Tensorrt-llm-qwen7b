@@ -87,11 +87,13 @@
                          --engine_dir=./qwen_trtModel\
                          --tokenizer_dir=/root/workspace/trt2023/QWen-7B-Chat\
                          --hf_model_location=/root/workspace/trt2023/QWen-7B-Chat/\
+                         --dataset_path=/root/workspace/trt2023/cnn_dailymail\
                          --rouge_path=./datasets/rouge.py
      python summarize.py --test_trt_llm\
                          --engine_dir=./qwen_trtModel\
                          --tokenizer_dir=/root/workspace/trt2023/QWen-7B-Chat\
                          --hf_model_location=/root/workspace/trt2023/QWen-7B-Chat/\
+                         --dataset_path=/root/workspace/trt2023/cnn_dailymail\
                          --rouge_path=./datasets/rouge.py
  ````
 　　　如果网络很好，能够链接huggingface,不需要下载cnn_dailymail数据

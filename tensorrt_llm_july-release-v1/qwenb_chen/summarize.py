@@ -98,8 +98,9 @@ def main(args):
         import pickle
         cahe_data_path='/root/.cache/huggingface/datasets/cnn_dailymail/3.0.0/3.0.0/0107f7388b5c6fae455a5661bcd134fc22da53ea75852027040d8d1e997f101f/'
         if os.path.exists(cahe_data_path)==False:
+            print('11111')
             os.makedirs(cahe_data_path)
-        os.system("cp /root/workspace/cnn_dailymail/* {}".format(cahe_data_path))
+        os.system("cp {}/* {}".format(args.dataset_path,cahe_data_path))
         files=open('./datasets/dataset.pkl','rb')
         dataset=pickle.load(files)
     #  split='test')
