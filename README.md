@@ -32,7 +32,7 @@
   &nbsp; git clone https://gitee.com/chenmingwei53/trt2023_qwen7-b.git<br>
   &nbsp; 用户名：chenmingwei53<br>
   &nbsp; 密码：chentian184616(比赛结束后，密码更改)<br> 
-   - 步骤3:依赖安装<br>
+   - 步骤3:依赖安装(容器内路径/root/workspace下运行)<br>
   ````
   sh ./trt2023_qwen7-b/tensorrt_llm_july-release-v1/qwenb_chen/install_package.sh 
   ```` 
@@ -488,7 +488,27 @@ __all__ = [
         }
    ```` 
 　其实就只有position_ids每次循环递增1,至此,基本构建模型完成.
-
+#### 3.openai Triton--trtllm探索
+   官方在example/openai_triton主要介绍了如何使用triton生成TensorRT-LLM的plugin
+   可能版本的更新，对于kernel的编译，参数发生了变化,readme不是太对由:
+   ````
+   python ./triton/python/triton/tools/compile.py \
+    fmha_triton.py \
+    -n fused_attention_kernel \
+    -o aot/fp16/fmha_kernel_d64_fp16 \
+    --out-name fmha_d64_fp16 \
+    -w 4 \
+    -s "*fp16:16, *fp32:16, *fp32:16, *fp16:16, *fp16:16, *fp16:16, fp32, i32, 128, 64, 128" 
+ 转化为-->
+   python ./triton/python/triton/tools/compile.py \
+    fmha_triton.py \
+    -n fused_attention_kernel \
+    -o aot/fp16/fmha_kernel_d64_fp16 \
+    --out-name fmha_d64_fp16 \
+    -w 4 \
+    -s "*fp16:16, *fp32:16, *fp32:16, *fp16:16, *fp16:16, *fp16:16, fp32, i32, 128, 64, 128" \
+    -g "128, 64, 128"
+   ````
 ### 优化效果
 
 这一部分介绍你的工作在云主机上的运行效果。如果是优化模型，需要分两部分说明：<br>
