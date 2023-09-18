@@ -24,7 +24,7 @@
 | Qwen-7B(TensorRT-LLM)  | 46.6413 | 27.9374 |8.6715|19.3419|23.4794|
 
 - Docker环境代码编译、运行步骤说明：<br>
-  - 步骤1:容器启动：<br>
+  - 步骤1:容器启动(主要说明的服务器/root/路径映射容器/root/workspace/trt2023/路径)：<br>
   ````
   nvidia-docker run -it --name trt_2023 -v /root:/root/workspace/trt2023 registry.cn-hangzhou.aliyuncs.com/trt-hackathon/trt-hackathon:final_v1 /bin/bash
    ````
@@ -54,8 +54,10 @@
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp;   链接：https://pan.baidu.com/s/1yteFl5YPzhVg8maUd2jqfg?pwd=usyn 
 提取码：usyn
    -  步骤5:运行前的准备工作,运行：<br>
-  sh ./trt2023_qwen7-b/tensorrt_llm_july-release-v1/qwenb_chen/prepare.sh <br>
-   - 步骤6:  导出lm_head的模型参数
+ ````
+  sh ./trt2023_qwen7-b/tensorrt_llm_july-release-v1/qwenb_chen/prepare.sh
+ ````   
+- 步骤6:  导出lm_head的模型参数
  ````
     cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
     python exportLM.py --checkpoint_path=/root/workspace/trt2023/QWen-7B-Chat
