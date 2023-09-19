@@ -36,7 +36,7 @@
   ````
   sh ./trt2023_qwen7-b/tensorrt_llm_july-release-v1/qwenb_chen/install_package.sh 
   ```` 
-   - 步骤4:依赖模型下载(该服务器/root/路径已存在Qwen-7B-Chat和cnn_dailymail可以不需要下载)<br>
+   - 步骤4:依赖模型下载(该服务器/root/路径已存在Qwen-7B-Chat和cnn_dailymail可以不需要下载！！！！！！)<br>
    　(1) Qwen-7B-Chat模型下载到服务器路径：/root/Qwen-7B-Chat/<br>
    　  &nbsp;&nbsp;  链接:https://huggingface.co/Qwen/Qwen-7B-Chat<br>
        &nbsp;   &nbsp;   &nbsp; a.网络通顺的情况下：<br>
@@ -46,9 +46,10 @@
    ````    
  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;b.用户网络通顺，但服务器网络不好：<br>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    　手动下载链接https://huggingface.co/Qwen/Qwen-7B-Chat所有文件到服务器路径/root/QWen-7B-Chat文件夹内,具体文件如下图内容：<br>
-    &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp;    ![相对路径的图片](./tensorrt_llm_july-release-v1/qwenb_chen/png/model_files.png)      
+    &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp;  ![相对路径的图片](./tensorrt_llm_july-release-v1/qwenb_chen/png/model_files.png)      
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;c.用户网络只能访问百度：<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;大佬提供网盘链接：https://pan.baidu.com/s/14XxZ-JO5RfhGJEVs_BEiDA?pwd=8rw4#list/path=%2F<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;提供网盘链接：链接：https://pan.baidu.com/s/1kL_m-hDI6iVCRDppySDYKA?pwd=jrqo 
+提取码：jrqo<br>
    &nbsp;下载文件到Qwen-7B-Chat,注意！！！文件路径必须与b保持一致．<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;   (2)summary　cnn_dailymail数据下载到服务器路径：/root/cnn_dailymail：<br>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp;   链接：https://pan.baidu.com/s/1yteFl5YPzhVg8maUd2jqfg?pwd=usyn 
@@ -91,14 +92,17 @@
                          --hf_model_location=/root/workspace/trt2023/QWen-7B-Chat/\
                          --dataset_path=/root/workspace/trt2023/cnn_dailymail\
                          --rouge_path=./datasets/rouge.py
-     python summarize.py --test_trt_llm\
+ ````
+ ````
+       cd /root/workspace/tensorrt_llm_july-release-v1/qwenb_chen
+       python summarize.py --test_trt_llm\
                          --engine_dir=./qwen_trtModel\
                          --tokenizer_dir=/root/workspace/trt2023/QWen-7B-Chat\
                          --hf_model_location=/root/workspace/trt2023/QWen-7B-Chat/\
                          --dataset_path=/root/workspace/trt2023/cnn_dailymail\
                          --rouge_path=./datasets/rouge.py
  ````
-　　　如果网络很好，能够链接huggingface,不需要下载cnn_dailymail数据
+如果网络很好，能够链接huggingface,不需要下载cnn_dailymail数据
      请运行：
  ````
 　　  python summarize.py --test_hf \
@@ -491,9 +495,10 @@ __all__ = [
    ```` 
 　其实就只有position_ids每次循环递增1,至此,基本构建模型完成.
 #### 3.openai Triton--trtllm探索
-   官方在example/openai_triton主要介绍了如何使用triton生成TensorRT-LLM的plugin
-   可能版本的更新，对于kernel的编译，参数发生了变化,readme不是太对由:
-   ````
+   官方在example/openai_triton主要介绍了如何使用triton的flash attention 生成TensorRT-LLM的plugin
+  按照/root/workspace/tensorrt_llm_july-release-v1/examples/openai_triton的readme生成flah attention kernel需要运行
+  命令：
+````
    python ./triton/python/triton/tools/compile.py \
     fmha_triton.py \
     -n fused_attention_kernel \
@@ -501,16 +506,71 @@ __all__ = [
     --out-name fmha_d64_fp16 \
     -w 4 \
     -s "*fp16:16, *fp32:16, *fp32:16, *fp16:16, *fp16:16, *fp16:16, fp32, i32, 128, 64, 128" 
- 转化为-->
-   python ./triton/python/triton/tools/compile.py \
+  ````
+实际运行发现出现报错,缺少参数grid, 并且compile.py设定grid为必须提供参数,理解代码fmha_triton.py
+  ````
+    grid = (triton.cdiv(q.shape[2], BLOCK), q.shape[0] * q.shape[1], 1)
+  ````
+也就是在编译fused_attention_kernel函数,需要指定kernel运行的pid,根据公式此结果与序列长度q.shape[2],
+BLOCK_M ,序列batch_size和num_head有关,根据公式：
+原因：1.可以看到我们需要转化的是单个kenel需要运行的函数,代码分析函数为fused_attention_kernel;<br>
+       2.compile.py需要参数grid,也就是kernel id的信息,计算公式：grid = (triton.cdiv(q.shape[2], BLOCK_M), q.shape[0] * q.shape[1], 1)<br>
+       因此假设我们设置最大seq_len=1024=q.shape[2],BLOCK_M=128,BATCH_size=1,num_heads=32
+       则结果为grid="8,32,1"
+  ````
+#Kernel for data type=float16, BLOCK_M=128, BLOCK_DMODEL=64, BLOCK_N=128
+#grid = (triton.cdiv(q.shape[2], BLOCK), q.shape[0] * q.shape[1], 1)
+#grid=((1024+128-1)//128=8,1*32,1)
+  python ./triton/python/triton/tools/compile.py \
     fmha_triton.py \
     -n fused_attention_kernel \
     -o aot/fp16/fmha_kernel_d64_fp16 \
     --out-name fmha_d64_fp16 \
     -w 4 \
     -s "*fp16:16, *fp32:16, *fp32:16, *fp16:16, *fp16:16, *fp16:16, fp32, i32, 128, 64, 128" \
-    -g "128, 64, 128"
+    -g "8,32,1"
+# Kernel for data type=float32, BLOCK_M=64, BLOCK_DMODEL=64, BLOCK_N=64
+#grid = (triton.cdiv(q.shape[2], BLOCK), q.shape[0] * q.shape[1], 1)
+#gird=(16,32,1)
+mkdir -p aot/fp32
+python triton/python/triton/tools/compile.py \
+    fmha_triton.py \
+    -n fused_attention_kernel \
+    -o aot/fp32/fmha_kernel_d64_fp32 \
+    --out-name fmha_d64_fp32 \
+    -w 4 \
+    -s "*fp32:16, *fp32:16, *fp32:16, *fp32:16, *fp32:16, *fp32:16, fp32, i32, 64, 64, 64"\
+    -g "16,32,1"
    ````
+ 在步骤build a shared library时出现报错,所提供CMakeLists.txt缺少TensorRT-9.0.0.2环境设置因此在
+ 所提供CMakeLists.txt 34行添加
+````
+# tensorRT
+include_directories(/usr/local/TensorRT-9.0.0.2/include)
+link_directories(/usr/local/TensorRT-9.0.0.2/lib)
+````
+由于readme是按照没有参数grid进行编译的,对应TritonFlashAttentionPlugin.cpp需要修改调用fmha_d64_fp16以及fmha_d64_fp32
+函数,具体如下 112行:
+````
+ int res = 0;
+    if (std::is_same<T, float>::value)
+    {
+        // const int BLOCK_SIZE = 64;
+        res = fmha_d64_fp32(stream, 
+            reinterpret_cast<CUdeviceptr>(Out), reinterpret_cast<CUdeviceptr>(L), reinterpret_cast<CUdeviceptr>(M),
+            reinterpret_cast<CUdeviceptr>(Q), reinterpret_cast<CUdeviceptr>(K), reinterpret_cast<CUdeviceptr>(V),
+            mSoftmaxScale, seqLen,0); //(seqLen + BLOCK_SIZE - 1) / BLOCK_SIZE, batchSize * mNumHeads, 1,
+    }
+    else
+    {
+        // const int BLOCK_SIZE = 128;
+        res = fmha_d64_fp16(stream,
+            reinterpret_cast<CUdeviceptr>(Out), reinterpret_cast<CUdeviceptr>(L), reinterpret_cast<CUdeviceptr>(M),
+            reinterpret_cast<CUdeviceptr>(Q), reinterpret_cast<CUdeviceptr>(K), reinterpret_cast<CUdeviceptr>(V),
+            mSoftmaxScale, seqLen,0); //(seqLen + BLOCK_SIZE - 1) / BLOCK_SIZE, batchSize * mNumHeads, 1,
+    }
+````
+至此编译通过．但是build.py 运行成功,run.py报内部错误，无法解决AssertionError: Engine execution failed
 ### 优化效果
 
 这一部分介绍你的工作在云主机上的运行效果。如果是优化模型，需要分两部分说明：<br>
