@@ -76,9 +76,9 @@ def build(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--max_batch_size', type=int, default=4)
-    parser.add_argument('--max_seq_len', type=int, default=256)
-    parser.add_argument('--num_heads', type=int, default=8)
+    parser.add_argument('--max_batch_size', type=int, default=1)
+    parser.add_argument('--max_seq_len', type=int, default=1024)
+    parser.add_argument('--num_heads', type=int, default=32)
     parser.add_argument('--head_size', type=int, default=64)
     parser.add_argument('--dtype',
                         type=str,

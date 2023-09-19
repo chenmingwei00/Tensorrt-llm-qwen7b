@@ -9,7 +9,7 @@ The workflow can be summarized as follows.
   5. It is ready to be executed by TensorRT.
 
 In this example, we show how to create a TensorRT-LLM plugin to wrap a [Fused Attention]((fmha_triton.py)) kernel implemented in OpenAI Triton.
-As a prerequisite, it is necessary to have the TensorRT-LLM C++ runtime library.
+As a prerequisite(作为先决条件), it is necessary to have the TensorRT-LLM C++ runtime library.
 The instructions to build that library can be found [here](../../README.md#build-from-source).
 
 ## 1. Triton AoT Preparation
@@ -28,16 +28,21 @@ Details can be found in the [compile.py](https://github.com/openai/triton/blob/m
 
 Here are examples of kernel AOT compilations for the [Fused Attention](fmha_triton.py) kernel.
 ```bash
-# Kernel for data type=float16, BLOCK_M=128, BLOCK_DMODEL=64, BLOCK_N=128
+# Kernel for data type=float16, BLOCK_M=32, BLOCK_DMODEL=64, BLOCK_N=32
+# grid = (triton.cdiv(q.shape[2], BLOCK), q.shape[0] * q.shape[1], 1)
+#grid=((1024+32-1)//32=32,1*32,1)
 mkdir -p aot/fp16
-python triton/python/triton/tools/compile.py \
+python ./triton/python/triton/tools/compile.py \
     fmha_triton.py \
     -n fused_attention_kernel \
     -o aot/fp16/fmha_kernel_d64_fp16 \
     --out-name fmha_d64_fp16 \
     -w 4 \
-    -s "*fp16:16, *fp32:16, *fp32:16, *fp16:16, *fp16:16, *fp16:16, fp32, i32, 128, 64, 128"
-# Kernel for data type=float32, BLOCK_M=64, BLOCK_DMODEL=64, BLOCK_N=64
+    -s "*fp16:16, *fp32:16, *fp32:16, *fp16:16, *fp16:16, *fp16:16, fp32, i32, 32, 64, 32" \
+    -g "32,32,1"
+# Kernel for data type=float32, BLOCK_M=16, BLOCK_DMODEL=64, BLOCK_N=16
+#grid = (triton.cdiv(q.shape[2], BLOCK), q.shape[0] * q.shape[1], 1)
+#gird=(64,32,1)
 mkdir -p aot/fp32
 python triton/python/triton/tools/compile.py \
     fmha_triton.py \
@@ -45,7 +50,8 @@ python triton/python/triton/tools/compile.py \
     -o aot/fp32/fmha_kernel_d64_fp32 \
     --out-name fmha_d64_fp32 \
     -w 4 \
-    -s "*fp32:16, *fp32:16, *fp32:16, *fp32:16, *fp32:16, *fp32:16, fp32, i32, 64, 64, 64"
+    -s "*fp32:16, *fp32:16, *fp32:16, *fp32:16, *fp32:16, *fp32:16, fp32, i32, 16, 64, 16"\
+    -g "64,32,1"
 # Link generated headers and create dispatchers.
 python triton/python/triton/tools/link.py aot/fp16/*.h -o aot/fmha_kernel_fp16
 python triton/python/triton/tools/link.py aot/fp32/*.h -o aot/fmha_kernel_fp32
@@ -88,8 +94,8 @@ That FMHA operator uses the custom plugin that wraps the functions generated fro
 We are now ready to build and run the TensorRT engine that uses the Triton kernel.
 Here are the two commands to build and run the engine:
 ```bash
-python build.py --num_heads 32 --head_size 64 --max_batch_size 8 --max_seq_len 512 --dtype float16
-python run.py --num_heads 32 --head_size 64 --batch_size 8 --seq_len 512 --log_level verbose --benchmark
+python build.py --num_heads 32 --head_size 128 --max_batch_size 1 --max_seq_len 1024 --dtype float16
+python run.py --num_heads 32 --head_size 128 --batch_size 1 --seq_len 1024 --log_level verbose --benchmark
 ```
 
 ## 4. Known Issues

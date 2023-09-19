@@ -112,19 +112,19 @@ int TritonFlashAttentionPlugin::enqueueImpl(const nvinfer1::PluginTensorDesc* in
     int res = 0;
     if (std::is_same<T, float>::value)
     {
-        const int BLOCK_SIZE = 64;
-        res = fmha_d64_fp32(stream, (seqLen + BLOCK_SIZE - 1) / BLOCK_SIZE, batchSize * mNumHeads, 1,
+        // const int BLOCK_SIZE = 64;
+        res = fmha_d64_fp32(stream,
             reinterpret_cast<CUdeviceptr>(Out), reinterpret_cast<CUdeviceptr>(L), reinterpret_cast<CUdeviceptr>(M),
             reinterpret_cast<CUdeviceptr>(Q), reinterpret_cast<CUdeviceptr>(K), reinterpret_cast<CUdeviceptr>(V),
-            mSoftmaxScale, seqLen);
+            mSoftmaxScale, seqLen,0); //(seqLen + BLOCK_SIZE - 1) / BLOCK_SIZE, batchSize * mNumHeads, 1,
     }
     else
     {
-        const int BLOCK_SIZE = 128;
-        res = fmha_d64_fp16(stream, (seqLen + BLOCK_SIZE - 1) / BLOCK_SIZE, batchSize * mNumHeads, 1,
+        // const int BLOCK_SIZE = 128;
+        res = fmha_d64_fp16(stream,
             reinterpret_cast<CUdeviceptr>(Out), reinterpret_cast<CUdeviceptr>(L), reinterpret_cast<CUdeviceptr>(M),
             reinterpret_cast<CUdeviceptr>(Q), reinterpret_cast<CUdeviceptr>(K), reinterpret_cast<CUdeviceptr>(V),
-            mSoftmaxScale, seqLen);
+            mSoftmaxScale, seqLen,0); //(seqLen + BLOCK_SIZE - 1) / BLOCK_SIZE, batchSize * mNumHeads, 1,
     }
     return res;
 }

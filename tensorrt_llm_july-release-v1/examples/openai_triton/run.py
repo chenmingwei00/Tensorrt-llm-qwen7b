@@ -66,6 +66,7 @@ def run(engine_dir,
 
     # Execute model inference
     stream = torch.cuda.current_stream()
+
     ok = session.run(inputs=inputs, outputs=outputs, stream=stream.cuda_stream)
     assert ok, 'Engine execution failed'
 
@@ -118,9 +119,9 @@ def run(engine_dir,
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--batch_size', type=int, default=4)
-    parser.add_argument('--seq_len', type=int, default=128)
-    parser.add_argument('--num_heads', type=int, default=8)
+    parser.add_argument('--batch_size', type=int, default=1)
+    parser.add_argument('--seq_len', type=int, default=1024)
+    parser.add_argument('--num_heads', type=int, default=32)
     parser.add_argument('--head_size', type=int, default=64)
     parser.add_argument('--log_level', type=str, default='info')
     parser.add_argument(
@@ -130,6 +131,7 @@ if __name__ == '__main__':
         help='The directory where serialized engine files locate.')
     parser.add_argument(
         '--benchmark',
+        default=True,
         action='store_true',
         help='Do performance benchmark compared to triton baseline.')
     args = parser.parse_args()
@@ -142,7 +144,7 @@ if __name__ == '__main__':
 
     assert args.engine_dir.exists(), \
         f"Engine file {str(args.engine_dir)} doesn't exists."
-
+    print('!!!!!!!!!!!!!!here')
     logger.info('Inference using the built TensorRT engine.')
     run(args.engine_dir,
         args.batch_size,

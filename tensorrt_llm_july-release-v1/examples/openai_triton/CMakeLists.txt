@@ -32,6 +32,9 @@ set(TRT_LLM_INCLUDE_DIR "../../cpp")
 include_directories(${TRT_LLM_INCLUDE_DIR})
 set(TRT_LLM_LIB_DIR "../../tensorrt_llm/libs")
 link_directories(${TRT_LLM_LIB_DIR})
+# tensorRT
+include_directories(/usr/local/TensorRT-9.0.0.2/include)
+link_directories(/usr/local/TensorRT-9.0.0.2/lib)
 
 # Declare the executable target built from your sources
 add_library(
@@ -40,8 +43,8 @@ add_library(
   TritonFlashAttentionPlugin.cpp
   aot/fmha_kernel_fp16.c
   aot/fmha_kernel_fp32.c
-  aot/fp16/fmha_kernel_d64_fp16.0eb6b090_0d1d2d3d4d5d67.c
-  aot/fp32/fmha_kernel_d64_fp32.7f15949c_0d1d2d3d4d5d67.c)
+  aot/fp16/fmha_kernel_d64_fp16.328ed4f2_0d1d2d3d4d5d67.c
+  aot/fp32/fmha_kernel_d64_fp32.1ac60ff8_0d1d2d3d4d5d67.c)
 
 # Link your application with CUDA libraries
 target_link_libraries(${TARGET_NAME} LINK_PRIVATE ${CUDA_LIBRARIES})
