@@ -17,8 +17,8 @@ The instructions to build that library can be found [here](../../README.md#build
 OpenAI Triton offers an Ahead-of-Time (AoT) compilation tool to generate C files that wrap compiled GPU kernel.
 To use the AoT feature, you need a Triton version posterior to the [d0c35b3](https://github.com/openai/triton/commit/d0c35b3b7d6badf0c0d56a821dddab7ace73b4de) commit.
 ```bash
-rm -rf ./tensorrt_llm_july-release-v1/examples/openai_triton/
-cp -r ./trt2023_qwen7-b/tensorrt_llm_july-release-v1/examples/openai_triton/ ./tensorrt_llm_july-release-v1/examples/
+rm -rf /root/workspace/tensorrt_llm_july-release-v1/examples/openai_triton/
+cp -r /root/workspace/trt2023_qwen7-b/tensorrt_llm_july-release-v1/examples/openai_triton/ ./tensorrt_llm_july-release-v1/examples/
 cd /root/workspace/tensorrt_llm_july-release-v1/examples/openai_triton
 (必须重新安装,自带安装triton无法使用)
 git clone https://github.com/openai/triton
