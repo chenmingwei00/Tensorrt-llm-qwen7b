@@ -544,8 +544,17 @@ python triton/python/triton/tools/compile.py \
     -g "16,32,1"
    ````
  在步骤build a shared library时出现报错,所提供CMakeLists.txt缺少TensorRT-9.0.0.2环境设置因此在
- 所提供CMakeLists.txt 34行添加
+ 所提供CMakeLists.txt 34行添加,因为每次在路径aot/fp16和aot/fp32生成的.c文件不同,因此需要每次修改如下对应的
+ .c文件名
 ````
+ add_library(
+  ${TARGET_NAME} SHARED
+  tritonPlugins.cpp
+  TritonFlashAttentionPlugin.cpp
+  aot/fmha_kernel_fp16.c
+  aot/fmha_kernel_fp32.c
+  aot/fp16/fmha_kernel_d64_fp16.4406ef48_0d1d2d3d4d5d67.c
+  aot/fp32/fmha_kernel_d64_fp32.f7e9b896_0d1d2d3d4d5d67.c)
 # tensorRT
 include_directories(/usr/local/TensorRT-9.0.0.2/include)
 link_directories(/usr/local/TensorRT-9.0.0.2/lib)
