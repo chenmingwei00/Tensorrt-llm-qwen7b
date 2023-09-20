@@ -495,6 +495,7 @@ __all__ = [
    ```` 
 　其实就只有position_ids每次循环递增1,至此,基本构建模型完成.
 #### 3.openai Triton--trtllm探索
+    具体运行命令修改请看examples/openai_triton/README.md
    所有修改文件在路径　examples/openai_triton中．<br>
    官方在example/openai_triton主要介绍了如何使用triton的flash attention 生成TensorRT-LLM的plugin
   按照/root/workspace/tensorrt_llm_july-release-v1/examples/openai_triton的readme生成flah attention kernel需要运行
