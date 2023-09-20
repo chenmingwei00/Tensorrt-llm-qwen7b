@@ -578,7 +578,6 @@ fmha_triton.py增加测试函数发现报错原因在于gpu　SRAM内存限制�
 out of resource: shared memory, Required: 114690, Hardware limit: 101376. Reducing block sizes or `num_stages` may help.
 因此减小BLOCK_M与BLOCK_N的大小，详细见我更新的example/openai_triton/README.md,重新编译build.py最终运行成功：
      &nbsp; &nbsp;    ![相对路径的图片](./tensorrt_llm_july-release-v1/qwenb_chen/png/triton_run.png)  
-但是我们可以看到不匹配元素96%所以还是有问题．
 ### 优化效果
 
 这一部分介绍你的工作在云主机上的运行效果。如果是优化模型，需要分两部分说明：<br>
