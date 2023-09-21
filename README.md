@@ -46,7 +46,7 @@
               git clone https://huggingface.co/Qwen/Qwen-7B-Chat
    ````    
  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;b.用户网络通顺，但服务器网络不好：<br>
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    　手动下载链接https://huggingface.co/Qwen/Qwen-7B-Chat所有文件到服务器路径/root/QWen-7B-Chat文件夹内,具体文件如下图内容：<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    　手动下载链接https://huggingface.co/Qwen/Qwen-7B-Chat 所有文件到服务器路径/root/QWen-7B-Chat文件夹内,具体文件如下图内容：<br>
     &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp;  ![相对路径的图片](./tensorrt_llm_july-release-v1/qwenb_chen/png/model_files.png)      
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;c.用户网络只能访问百度：<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;提供网盘链接：链接：https://pan.baidu.com/s/1kL_m-hDI6iVCRDppySDYKA?pwd=jrqo 
