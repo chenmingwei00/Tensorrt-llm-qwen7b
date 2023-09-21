@@ -21,10 +21,14 @@ rm -rf /root/workspace/tensorrt_llm_july-release-v1/examples/openai_triton/
 cp -r /root/workspace/trt2023_qwen7-b/tensorrt_llm_july-release-v1/examples/openai_triton/ /root/workspace/tensorrt_llm_july-release-v1/examples/
 cd /root/workspace/tensorrt_llm_july-release-v1/examples/openai_triton
 (必须重新安装,自带安装triton无法使用,网速较慢多尝试几次,下载较多)
+网络不好
+
+网络好，也是奇怪就装成功一次
 git clone https://github.com/openai/triton
 cd triton/python/
 pip install cmake -i https://pypi.tuna.tsinghua.edu.cn/simple
 pip install -e . -i https://pypi.tuna.tsinghua.edu.cn/simple
+
 ```
 
 For AoT compilation, it is necessary to provide a kernel signature and specify the values of `tl.constexpr` parameters in a comma-separated format.
@@ -32,9 +36,10 @@ Details can be found in the [compile.py](https://github.com/openai/triton/blob/m
 
 Here are examples of kernel AOT compilations for the [Fused Attention](fmha_triton.py) kernel.
 ```bash
-# Kernel for data type=float16, BLOCK_M=32, BLOCK_DMODEL=64, BLOCK_N=32
+max_input_len=1950 num_head=32
+# Kernel for data type=float16, BLOCK_M=16, BLOCK_DMODEL=128, BLOCK_N=16
 # grid = (triton.cdiv(q.shape[2], BLOCK), q.shape[0] * q.shape[1], 1)
-#grid=((1024+32-1)//32=32,1*32,1)
+#grid=((1950+16-1)//16=122,1*32,1)
 mkdir -p aot/fp16
 python ./triton/python/triton/tools/compile.py \
     fmha_triton.py \
@@ -42,11 +47,11 @@ python ./triton/python/triton/tools/compile.py \
     -o aot/fp16/fmha_kernel_d64_fp16 \
     --out-name fmha_d64_fp16 \
     -w 4 \
-    -s "*fp16:16, *fp32:16, *fp32:16, *fp16:16, *fp16:16, *fp16:16, fp32, i32, 32, 64, 32" \
-    -g "32,32,1"
+    -s "*fp16:16, *fp32:16, *fp32:16, *fp16:16, *fp16:16, *fp16:16, fp32, i32, 16, 128, 16" \
+    -g "122,32,1"
 # Kernel for data type=float32, BLOCK_M=16, BLOCK_DMODEL=64, BLOCK_N=16
 #grid = (triton.cdiv(q.shape[2], BLOCK), q.shape[0] * q.shape[1], 1)
-#gird=(64,32,1)
+#gird=((1950+16-1)//32,32,1)
 mkdir -p aot/fp32
 python triton/python/triton/tools/compile.py \
     fmha_triton.py \
@@ -54,8 +59,8 @@ python triton/python/triton/tools/compile.py \
     -o aot/fp32/fmha_kernel_d64_fp32 \
     --out-name fmha_d64_fp32 \
     -w 4 \
-    -s "*fp32:16, *fp32:16, *fp32:16, *fp32:16, *fp32:16, *fp32:16, fp32, i32, 16, 64, 16"\
-    -g "64,32,1"
+    -s "*fp32:16, *fp32:16, *fp32:16, *fp32:16, *fp32:16, *fp32:16, fp32, i32, 16, 128, 16"\
+    -g "122,32,1"
 # Link generated headers and create dispatchers.
 python triton/python/triton/tools/link.py aot/fp16/*.h -o aot/fmha_kernel_fp16
 python triton/python/triton/tools/link.py aot/fp32/*.h -o aot/fmha_kernel_fp32
@@ -83,6 +88,7 @@ Thus, if you change the `-s <signature>` option during AoT compilation, you also
 
 To build a shared library for the custom Triton plugin, run:
 ```bash
+可能需要修改下CMakeLists.txt　46 47 行按照实际文件名称修改
 mkdir -p build && cd build
 cmake .. && make
 cd ..
@@ -98,8 +104,8 @@ That FMHA operator uses the custom plugin that wraps the functions generated fro
 We are now ready to build and run the TensorRT engine that uses the Triton kernel.
 Here are the two commands to build and run the engine:
 ```bash
-python build.py --num_heads 32 --head_size 128 --max_batch_size 1 --max_seq_len 1024 --dtype float16
-python run.py --num_heads 32 --head_size 128 --batch_size 1 --seq_len 1024 --log_level verbose --benchmark
+python build.py --num_heads 32 --head_size 128 --max_batch_size 1 --max_seq_len 1950 --dtype float16
+python run.py --num_heads 32 --head_size 128 --batch_size 1 --seq_len 1950 --log_level verbose --benchmark
 ```
 
 ## 4. Known Issues

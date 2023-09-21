@@ -90,7 +90,7 @@ def fused_attention_kernel(
 
 
 def fused_attention(q, k, v, sm_scale, o_buf=None, l_buf=None, m_buf=None):
-    BLOCK = 128 if q.dtype == torch.float16 else 64
+    BLOCK = 16 if q.dtype == torch.float16 else 64
     # shape constraints
     Lq, Lk, Lv = q.shape[-1], k.shape[-1], v.shape[-1]
     assert Lq == Lk and Lk == Lv
