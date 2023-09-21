@@ -24,7 +24,7 @@
 | Qwen-7B(TensorRT-LLM)  | 46.6413 | 27.9374 |8.6715|19.3419|23.4794|
 
 - Docker环境代码编译、运行步骤说明：<br>
-　运行前说明，服务器root/路径下三个关键文件：QWen-7B-Chat　cnn_dailymail　triton_install　triton缺一不可！！！！！
+　运行前说明，服务器root/路径下三个关键文件：QWen-7B-Chat　cnn_dailymail (前两个是主要功能文件)　triton_install　triton缺一不可！！！！！
   - 步骤1:容器启动(主要说明的服务器/root/路径映射容器/root/workspace/trt2023/路径)：<br>
   ````
   nvidia-docker run -it --name trt_2023 -v /root:/root/workspace/trt2023 registry.cn-hangzhou.aliyuncs.com/trt-hackathon/trt-hackathon:final_v1 /bin/bash
