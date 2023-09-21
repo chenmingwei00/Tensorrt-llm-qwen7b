@@ -23,7 +23,7 @@ cd /root/workspace/tensorrt_llm_july-release-v1/examples/openai_triton
 (必须重新安装,自带安装triton无法使用,网速较慢多尝试几次,下载较多)
 git clone https://github.com/openai/triton
 cd triton/python/
-pip install cmake 
+pip install cmake -i https://pypi.tuna.tsinghua.edu.cn/simple
 pip install -e . -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
