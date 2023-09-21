@@ -1,6 +1,6 @@
 ### 总述
 本工作是 [NVIDIA TensorRT Hackathon 2023](https://github.com/NVIDIA/trt-samples-for-hackathon-cn/tree/master/Hackathon2023) 的参赛题目
-- 本次具体选题是：2  (同时按照最新triton修改了/example/openai_triton的例子,老的readme貌似跑不通) 
+- 本次具体选题是：2  (同时按照最新triton修改了/example/openai_triton的例子,老的readme测试跑不通) 
 - 新模型：Qwen-7B-Chat　
 - 模型链接：https://github.com/QwenLM/Qwen-7B/blob/main/cli_demo.py#L39
 - 模型介绍：<br>
