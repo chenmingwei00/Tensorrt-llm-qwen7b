@@ -24,6 +24,7 @@
 | Qwen-7B(TensorRT-LLM)  | 46.6413 | 27.9374 |8.6715|19.3419|23.4794|
 
 - Docker环境代码编译、运行步骤说明：<br>
+　运行前说明，服务器root/路径下三个关键文件：QWen-7B-Chat　cnn_dailymail　triton_install　triton缺一不可！！！！！
   - 步骤1:容器启动(主要说明的服务器/root/路径映射容器/root/workspace/trt2023/路径)：<br>
   ````
   nvidia-docker run -it --name trt_2023 -v /root:/root/workspace/trt2023 registry.cn-hangzhou.aliyuncs.com/trt-hackathon/trt-hackathon:final_v1 /bin/bash
@@ -36,7 +37,7 @@
   ````
   sh ./trt2023_qwen7-b/tensorrt_llm_july-release-v1/qwenb_chen/install_package.sh 
   ```` 
-   - 步骤4:依赖模型下载(该服务器/root/路径已存在Qwen-7B-Chat和cnn_dailymail可以不需要下载！！！！！！)<br>
+   - 步骤4:依赖模型下载(该服务器/root/路径已存在Qwen-7B-Chat和cnn_dailymail可以不需要下载,跳过该步骤！！！！！！)<br>
    　(1) Qwen-7B-Chat模型下载到服务器路径：/root/Qwen-7B-Chat/<br>
    　  &nbsp;&nbsp;  链接:https://huggingface.co/Qwen/Qwen-7B-Chat<br>
        &nbsp;   &nbsp;   &nbsp; a.网络通顺的情况下：<br>
@@ -495,7 +496,7 @@ __all__ = [
    ```` 
 　其实就只有position_ids每次循环递增1,至此,基本构建模型完成.
 #### 3.openai Triton--trtllm探索
-    具体运行命令修改请看examples/openai_triton/README.md
+    具体运行命令修改请看examples/openai_triton/README.md!!!!!!!!!!!!!!
    所有修改文件在路径　examples/openai_triton中．<br>
    官方在example/openai_triton主要介绍了如何使用triton的flash attention 生成TensorRT-LLM的plugin
   按照/root/workspace/tensorrt_llm_july-release-v1/examples/openai_triton的readme生成flah attention kernel需要运行
