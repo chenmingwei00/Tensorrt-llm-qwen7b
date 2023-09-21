@@ -25,6 +25,7 @@ cd /root/workspace/tensorrt_llm_july-release-v1/examples/openai_triton
 cp -r /root/workspace/trt2023/triton /root/workspace/tensorrt_llm_july-release-v1/examples/openai_triton
 cp -r /root/workspace/trt2023/triton_install/.triton/ /root
 cd /root/workspace/tensorrt_llm_july-release-v1/examples/openai_triton/triton/python
+pip uninstall triton
 pip install cmake
 python setup.py install
 网络好，也是奇怪就装成功一次
@@ -40,10 +41,12 @@ Details can be found in the [compile.py](https://github.com/openai/triton/blob/m
 
 Here are examples of kernel AOT compilations for the [Fused Attention](fmha_triton.py) kernel.
 ```bash
-max_input_len=1950 num_head=32
+#max_input_len=1950 num_head=32
 # Kernel for data type=float16, BLOCK_M=16, BLOCK_DMODEL=128, BLOCK_N=16
 # grid = (triton.cdiv(q.shape[2], BLOCK), q.shape[0] * q.shape[1], 1)
 #grid=((1950+16-1)//16=122,1*32,1)
+cd /root/workspace/tensorrt_llm_july-release-v1/examples/openai_triton
+
 mkdir -p aot/fp16
 python ./triton/python/triton/tools/compile.py \
     fmha_triton.py \
