@@ -22,6 +22,7 @@ cp -r /root/workspace/trt2023_qwen7-b/tensorrt_llm_july-release-v1/examples/open
 cd /root/workspace/tensorrt_llm_july-release-v1/examples/openai_triton
 (必须重新安装,自带安装triton无法使用,网速较慢多尝试几次,下载较多)
 网络不好
+cp -r /root/workspace/trt2023/triton /root/workspace/tensorrt_llm_july-release-v1/examples/openai_triton
 cp -r /root/workspace/trt2023/triton_install/.triton/ /root
 cd /root/workspace/tensorrt_llm_july-release-v1/examples/openai_triton/triton/python
 pip install cmake
