@@ -30,7 +30,7 @@
   "tokenizer_type": "QWenTokenizer",
   "transformers_version": "4.31.0",
   "use_cache": true,
-  "use_flash_attn": "false",
+  "use_flash_attn": false,
   "vocab_size": 151936,
   "use_dynamic_ntk": true,
   "use_logn_attn": true
