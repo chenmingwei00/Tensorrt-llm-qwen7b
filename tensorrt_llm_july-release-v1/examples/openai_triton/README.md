@@ -26,7 +26,7 @@ cp -r /root/workspace/trt2023/triton /root/workspace/tensorrt_llm_july-release-v
 cp -r /root/workspace/trt2023/triton_install/.triton/ /root
 cd /root/workspace/tensorrt_llm_july-release-v1/examples/openai_triton/triton/python
 pip install cmake
-pip install -e .
+python setup.py install
 网络好，也是奇怪就装成功一次
 git clone https://github.com/openai/triton
 cd triton/python/
