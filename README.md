@@ -57,7 +57,7 @@
 提取码：usyn<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;   (3)triton数据下载到服务器路径：/root/ 下载链接：https://pan.baidu.com/s/1xyGhaedfjzmfm2JKEbl_yQ?pwd=nefx 
 提取码：nefx <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;   (3)triton数据下载到服务器路径：/root/ 下载链接：https://pan.baidu.com/s/1lRtEAAk_33h2UxwpkviPVw?pwd=0d7n 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;   (3)triton_install数据下载到服务器路径：/root/ 下载链接：https://pan.baidu.com/s/1lRtEAAk_33h2UxwpkviPVw?pwd=0d7n 
 提取码：0d7n 
 
    -  步骤5:运行前的准备工作,运行：<br>
