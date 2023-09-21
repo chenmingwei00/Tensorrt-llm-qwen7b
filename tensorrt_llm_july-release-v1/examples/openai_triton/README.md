@@ -20,11 +20,11 @@ To use the AoT feature, you need a Triton version posterior to the [d0c35b3](htt
 rm -rf /root/workspace/tensorrt_llm_july-release-v1/examples/openai_triton/
 cp -r /root/workspace/trt2023_qwen7-b/tensorrt_llm_july-release-v1/examples/openai_triton/ /root/workspace/tensorrt_llm_july-release-v1/examples/
 cd /root/workspace/tensorrt_llm_july-release-v1/examples/openai_triton
-(必须重新安装,自带安装triton无法使用)
+(必须重新安装,自带安装triton无法使用,网速较慢多尝试几次,下载较多)
 git clone https://github.com/openai/triton
 cd triton/python/
 pip install cmake 
-pip install -e . 
+pip install -e . -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 For AoT compilation, it is necessary to provide a kernel signature and specify the values of `tl.constexpr` parameters in a comma-separated format.
