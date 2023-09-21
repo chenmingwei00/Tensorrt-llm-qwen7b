@@ -118,7 +118,6 @@
                          --hf_model_location=/root/workspace/trt2023/QWen-7B-Chat/\
  ````
    - 步骤11:  运行triton修改案例,请按照examples/openai_triton/README.md运行:<br>
-     如果网络不好请按照步骤4,下载/root/cnn_dailymail服务器映射容器路径下
 ### 主要开发工作
 #### 开发工作的难点 
  
