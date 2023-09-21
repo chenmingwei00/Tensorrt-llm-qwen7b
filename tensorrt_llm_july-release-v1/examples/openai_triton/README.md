@@ -95,7 +95,7 @@ Thus, if you change the `-s <signature>` option during AoT compilation, you also
 
 To build a shared library for the custom Triton plugin, run:
 ```bash
-可能需要修改下CMakeLists.txt　46 47 行按照实际文件名称修改
+需要修改下CMakeLists.txt　46 47 行按照实际文件名称修改
 mkdir -p build && cd build
 cmake .. && make
 cd ..
