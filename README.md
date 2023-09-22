@@ -52,7 +52,7 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;提供网盘链接：链接：https://pan.baidu.com/s/1kL_m-hDI6iVCRDppySDYKA?pwd=jrqo 
 提取码：jrqo<br>
    &nbsp;下载文件到Qwen-7B-Chat,注意！！！文件路径必须与b保持一致．<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;   (2)summary　cnn_dailymail数据下载到服务器路径：/root/cnn_dailymail：<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;   (2)summary　cnn_dailymail数据下载到服务器路径：/root/：<br>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp;   链接：https://pan.baidu.com/s/1yteFl5YPzhVg8maUd2jqfg?pwd=usyn 
 提取码：usyn<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;   (3)triton数据下载并解压到服务器路径：/root/ 下载链接：https://pan.baidu.com/s/1xyGhaedfjzmfm2JKEbl_yQ?pwd=nefx 
