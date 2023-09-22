@@ -55,9 +55,9 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;   (2)summary　cnn_dailymail数据下载到服务器路径：/root/cnn_dailymail：<br>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp;   链接：https://pan.baidu.com/s/1yteFl5YPzhVg8maUd2jqfg?pwd=usyn 
 提取码：usyn<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;   (3)triton数据下载到服务器路径：/root/ 下载链接：https://pan.baidu.com/s/1xyGhaedfjzmfm2JKEbl_yQ?pwd=nefx 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;   (3)triton数据下载并解压到服务器路径：/root/ 下载链接：https://pan.baidu.com/s/1xyGhaedfjzmfm2JKEbl_yQ?pwd=nefx 
 提取码：nefx <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;   (3)triton_install数据下载到服务器路径：/root/ 下载链接：https://pan.baidu.com/s/1lRtEAAk_33h2UxwpkviPVw?pwd=0d7n 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;   (3)triton_install数据下载并解压到服务器路径：/root/ 下载链接：https://pan.baidu.com/s/1lRtEAAk_33h2UxwpkviPVw?pwd=0d7n 
 提取码：0d7n 
 
    -  步骤5:运行前的准备工作,运行：<br>
