@@ -30,9 +30,7 @@
   nvidia-docker run -it --name trt_2023 -v /root:/root/workspace/trt2023 registry.cn-hangzhou.aliyuncs.com/trt-hackathon/trt-hackathon:final_v1 /bin/bash
    ````
   - 步骤2: clone 本人的项目到容器路径/root/workspace下<br>
-  &nbsp; git clone https://gitee.com/chenmingwei53/trt2023_qwen7-b.git<br>
-  &nbsp; 用户名：chenmingwei53<br>
-  &nbsp; 密码：chentian184616(比赛结束后，密码更改)<br> 
+  &nbsp; git clone git@github.com:chenmingwei00/Tensorrt-llm-qwen7b.git<br>
    - 步骤3:依赖安装(容器内路径/root/workspace下运行)<br>
   ````
   sh ./trt2023_qwen7-b/tensorrt_llm_july-release-v1/qwenb_chen/install_package.sh 
