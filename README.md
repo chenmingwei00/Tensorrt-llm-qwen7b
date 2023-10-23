@@ -27,6 +27,7 @@
 　运行前说明，服务器root/路径下四个关键文件：QWen-7B-Chat　cnn_dailymail (前两个是主要功能文件)　triton_install　triton缺一不可！！！！！
   - 步骤1:容器启动(主要说明的服务器/root/路径映射容器/root/workspace/trt2023/路径)：<br>
   ````
+  docker pull chenmingwei00/tensorrtllm:0.0.1
   nvidia-docker run -it --name trt_2023 -v /root:/root/workspace/trt2023 registry.cn-hangzhou.aliyuncs.com/trt-hackathon/trt-hackathon:final_v1 /bin/bash
    ````
   - 步骤2: clone 本人的项目到容器路径/root/workspace下<br>
