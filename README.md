@@ -28,10 +28,10 @@
   - 步骤1:容器启动(主要说明的服务器/root/路径映射容器/root/workspace/trt2023/路径)：<br>
   ````
   docker pull chenmingwei00/tensorrtllm:0.0.1
-  nvidia-docker run -it --name trt_2023 -v /root:/root/workspace/trt2023 registry.cn-hangzhou.aliyuncs.com/trt-hackathon/trt-hackathon:final_v1 /bin/bash
+  nvidia-docker run -it --name trt_2023 -v /用户系统某一路径路径:/root/workspace/trt2023 chenmingwei00/tensorrtllm:0.0.1 /bin/bash
    ````
   - 步骤2: clone 本人的项目到容器路径/root/workspace下<br>
-  &nbsp; git clone git@github.com:chenmingwei00/Tensorrt-llm-qwen7b.git<br>
+  &nbsp; git clone https://github.com/chenmingwei00/Tensorrt-llm-qwen7b.git<br>
    - 步骤3:依赖安装(容器内路径/root/workspace下运行)<br>
   ````
   sh ./trt2023_qwen7-b/tensorrt_llm_july-release-v1/qwenb_chen/install_package.sh 
