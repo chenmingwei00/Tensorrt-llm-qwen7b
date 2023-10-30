@@ -34,7 +34,7 @@
   &nbsp; git clone https://github.com/chenmingwei00/Tensorrt-llm-qwen7b.git<br>
    - 步骤3:依赖安装(容器内路径/root/workspace下运行)<br>
   ````
-  sh ./trt2023_qwen7-b/tensorrt_llm_july-release-v1/qwenb_chen/install_package.sh 
+  sh ./Tensorrt-llm-qwen7b/tensorrt_llm_july-release-v1/qwenb_chen/install_package.sh
   ```` 
    - 步骤4:依赖模型下载(该服务器/root/路径已存在Qwen-7B-Chat和cnn_dailymail可以不需要下载,跳过该步骤！！！！！！)<br>
    　(1) Qwen-7B-Chat模型下载到服务器路径：/root/Qwen-7B-Chat/<br>
@@ -61,7 +61,7 @@
 
    -  步骤5:运行前的准备工作,运行：<br>
  ````
-  sh ./trt2023_qwen7-b/tensorrt_llm_july-release-v1/qwenb_chen/prepare.sh
+  sh ./Tensorrt-llm-qwen7b/tensorrt_llm_july-release-v1/qwenb_chen/prepare.sh
  ````   
 - 步骤6:  导出lm_head的模型参数
  ````
